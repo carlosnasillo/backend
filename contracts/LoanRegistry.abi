@@ -1,0 +1,132 @@
+[
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "identifier",
+        "type": "bytes32"
+      }
+    ],
+    "name": "loan",
+    "outputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32"
+      },
+      {
+        "name": "loanAddress",
+        "type": "address"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "identifier",
+        "type": "bytes32"
+      }
+    ],
+    "name": "createLoan",
+    "outputs": [
+      {
+        "name": "addr",
+        "type": "address"
+      },
+      {
+        "name": "error",
+        "type": "uint16"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "identifier",
+        "type": "bytes32"
+      }
+    ],
+    "name": "removeLoan",
+    "outputs": [
+      {
+        "name": "error",
+        "type": "uint16"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "index",
+        "type": "uint256"
+      }
+    ],
+    "name": "loanIdFromIndex",
+    "outputs": [
+      {
+        "name": "identifier",
+        "type": "bytes32"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "identifier",
+        "type": "bytes32"
+      }
+    ],
+    "name": "loanAddress",
+    "outputs": [
+      {
+        "name": "loanAddress",
+        "type": "address"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "index",
+        "type": "uint256"
+      }
+    ],
+    "name": "loanFromIndex",
+    "outputs": [
+      {
+        "name": "identifier",
+        "type": "bytes32"
+      },
+      {
+        "name": "loanAddress",
+        "type": "address"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "numLoans",
+    "outputs": [
+      {
+        "name": "numLoans",
+        "type": "uint256"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "type": "constructor"
+  }
+]

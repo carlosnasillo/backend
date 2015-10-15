@@ -1,0 +1,27 @@
+[
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "identifier",
+    "outputs": [
+      {
+        "name": "identifier",
+        "type": "bytes32"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "identifier",
+        "type": "bytes32"
+      },
+      {
+        "name": "latticeAddress",
+        "type": "address"
+      }
+    ],
+    "type": "constructor"
+  }
+]
