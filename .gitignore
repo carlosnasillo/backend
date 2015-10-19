@@ -36,3 +36,8 @@
 node_modules
 chaindata/temp
 userdata
+/bin/
+/.DS_Store
+/.cache-main
+/.cache-tests
+/target/

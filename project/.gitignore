@@ -1,0 +1,4 @@
+/.sbtserver
+/.sbtserver.lock
+/target/
+/project/
