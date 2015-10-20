@@ -9,21 +9,19 @@
 package com.lattice.lib.integration.lc.impl
 
 import java.time.ZonedDateTime
-
 import scala.concurrent.ExecutionContext
 import scala.util.Failure
 import scala.util.Success
-
 import com.lattice.lib.integration.lc.LendingClubDb
 import com.lattice.lib.integration.lc.model.Formatters.loanListingFormat
 import com.lattice.lib.integration.lc.model.LoanListing
 import com.lattice.lib.integration.lc.model.NoteWrapper
-
 import play.api.libs.json.JsObject
 import play.api.libs.json.Json
 import play.modules.reactivemongo.json.JsObjectDocumentWriter
 import play.modules.reactivemongo.json.collection.JSONCollectionProducer
 import reactivemongo.api.DefaultDB
+import play.api.libs.json.JsValue
 
 /**
  * TODO implement all
@@ -34,11 +32,10 @@ import reactivemongo.api.DefaultDB
 class LendingClubMongoDb(db: DefaultDB) extends LendingClubDb {
   implicit val ec = ExecutionContext.Implicits.global
 
-  override def persistLoans(availableLoans: LoanListing) {
+  override def persistLoans(availableLoans: JsValue) {
     log.info(s"persisting available loans: $availableLoans")
-    val jsonLoans = Json.toJson(availableLoans).as[JsObject]
     val loans = db.collection("loans")
-    val future = loans.insert(jsonLoans)
+    val future = loans.insert(availableLoans.as[JsObject])
     future.onComplete {
       case Failure(e) => throw e
       case Success(lastError) => {

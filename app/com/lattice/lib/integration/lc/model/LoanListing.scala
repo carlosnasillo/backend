@@ -12,4 +12,4 @@ import java.time.ZonedDateTime
 /**
  * @author ze97286
  */
-case class LoanListing(asOfDate:ZonedDateTime,loans:Array[LendingClubLoan])
+case class LoanListing(asOfDate:ZonedDateTime,loans:Seq[LendingClubLoan])

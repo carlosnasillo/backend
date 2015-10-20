@@ -13,6 +13,7 @@ import com.lattice.lib.integration.lc.model.LendingClubNote
 import com.lattice.lib.integration.lc.model.LoanListing
 import com.lattice.lib.integration.lc.model.Order
 import com.lattice.lib.utils.Log
+import play.api.libs.json.JsValue
 
 /**
  * @author ze97286
@@ -27,7 +28,7 @@ trait LendingClubConnection extends Log {
   def ownedNotes: Seq[LendingClubNote]
 
   // get a sequence of available loans
-  def availableLoans: LoanListing
+  def availableLoans: JsValue
 
   // transfer funds to lattice account with Lending Club
   def transferFunds(amount: BigDecimal)

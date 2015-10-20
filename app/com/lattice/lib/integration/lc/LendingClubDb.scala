@@ -11,6 +11,7 @@ package com.lattice.lib.integration.lc
 import com.lattice.lib.integration.lc.model.LoanListing
 import com.lattice.lib.integration.lc.model.NoteWrapper
 import com.lattice.lib.utils.Log
+import play.api.libs.json.JsValue
 
 /**
  * Trait for lending club data persistence
@@ -21,7 +22,7 @@ import com.lattice.lib.utils.Log
  */
 trait LendingClubDb extends Log {
   // persist loan listing to lattice database
-  def persistLoans(availableLoans: LoanListing): Unit
+  def persistLoans(availableLoans: JsValue): Unit
 
   // load currently available loans from lattice database
   def availableLoans: LoanListing

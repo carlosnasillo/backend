@@ -27,9 +27,10 @@ import com.lattice.lib.integration.lc.model.LoanListing
 import com.lattice.lib.integration.lc.model.Order
 import com.lattice.lib.integration.lc.model.Orders
 import com.lattice.lib.integration.lc.model.OwnedNotes
-
 import play.api.libs.json.Json
 import scalaj.http.Http
+import play.api.libs.json.JsValue
+import models.Grade
 
 /**
  * Implementation for lending club connection api
@@ -78,19 +79,11 @@ object LendingClubConnectionImpl extends LendingClubConnection {
   /**
    * Get the currently available loans listing
    */
-  override def availableLoans: LoanListing = {
+  override def availableLoans: JsValue = {
     val loansString = Http(LendingClubConfig.LoanListingUrl)
       .headers((AuthorisationHeader, Authorisation),
         (ApiKeyHeader, ApiKey)).asString.body
-
-    println(s"availableLoans string=$loansString")
-
-    val loansJson = Json.parse(loansString)
-
-    println(s"availableLoans json=$loansJson")
-
-    Json.fromJson[LoanListing](loansJson).asOpt.get
-
+    Json.parse(loansString)
   }
 
   /**

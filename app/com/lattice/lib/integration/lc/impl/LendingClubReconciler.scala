@@ -14,8 +14,8 @@ import com.lattice.lib.integration.lc.model.LendingClubNote
 import com.lattice.lib.integration.lc.model.NoteWrapper
 import com.lattice.lib.investor.InvestorDb
 import com.lattice.lib.utils.Log
-
 import models.Originator
+import play.api.libs.json.JsValue
 
 /**
  * The reconciler is run periodically and reconciles the loans, notes, and accounts database with the state in lending club
@@ -38,8 +38,12 @@ class LendingClubReconciler(
   def reconcileAvailableLoans {
     log.info("reconciling available loans")
     val availableLoans = lc.availableLoans
-    log.info(s"availabe loans: ${availableLoans.asOfDate}\n ${availableLoans.loans mkString "\n"}")
-    db.persistLoans(availableLoans)
+//    db.persistLoans(availableLoans)
+    calculateLoanAnalytics(availableLoans)
+  }
+  
+  def calculateLoanAnalytics(loanListing:JsValue) {
+    //TODO 
   }
 
   /**

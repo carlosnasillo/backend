@@ -33,6 +33,7 @@ class LendingClubPortfolioManager(investorDb: InvestorDb, db: LendingClubDb, lc:
   /**
    * submit an order to lending club
    * If the order was successful, get the owned note, and persist it.
+   * TODO sanity checks
    */
   def submitOrder(investorId: String, loanId: String, amount: BigDecimal) = {
     // need to check that the investor id has sufficient funds in lattice 
@@ -48,10 +49,13 @@ class LendingClubPortfolioManager(investorDb: InvestorDb, db: LendingClubDb, lc:
     if (investedAmount > 0) {
       val noteOpt = (lc.ownedNotes filter (x => (x.loanId == loanId) && (x.orderId == er.orderInstructId))).headOption
 
+      // TODO sanity - check that the invested amount matches the note
+      
       // persist the note to db
       noteOpt match {
         case None       => // should not happen TODO handle as error
         case Some(note) => db.persistNote(NoteWrapper(note, investorId, ""))
+         // investmentPending
       }
     } else {
       // TODO return error result
