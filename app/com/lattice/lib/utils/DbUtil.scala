@@ -25,11 +25,7 @@ object DbUtil {
   val timeout = 5 seconds
   val timeoutMillis = timeout.toMillis.toInt
 
-  lazy val db = {
-    val _db = connection("lattice")
-    Await.ready(_db.drop, timeout)
-    _db
-  }
+  lazy val db = connection("lattice")
 
   def closeDriver(): Unit = try {
     driver.close()
