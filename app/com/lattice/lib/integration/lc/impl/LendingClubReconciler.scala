@@ -42,6 +42,7 @@ class LendingClubReconciler(
     calculateLoanAnalytics(availableLoans)
   }
   
+  //TODO Julien - use this to calculate the analytics and persist the result to db
   def calculateLoanAnalytics(loanListing:JsValue) {
     //TODO 
   }
