@@ -251,13 +251,13 @@ class LendingClubReconciler(
 //    val dailyChangeInNumLoans: Double = ???
 //    val dailyChangeInLiquidity: Double = ???
     val loanOrigination: Map[LocalDate, Long] = loanListingM.loans.groupBy(_.listD.toLocalDate).mapValues(_.size)
-//    val loanOriginationByGrade: Map[LocalDate, Map[Grade.Value, Long]] = ???
+    val loanOriginationByGrade: Map[LocalDate, Map[Grade.Value, Long]] = loanListingM.loans.groupBy(_.listD.toLocalDate).mapValues(_.groupBy(_.gradeEnum).mapValues(_.size))
 //    val loanOriginationByYield: Map[LocalDate, Map[Double, Long]] = ???
 //    val originatedNotional: Map[LocalDate, Long] = ???
 //    val originatedNotionalByGrade: Map[LocalDate, Map[Grade.Value, Long]] = ???
 //    val originatedNotionalByYield: Map[LocalDate, Map[Double, Long]] = ???
 
-    println(loanOrigination)
+    println(loanOriginationByGrade)
 
     /*LoanAnalytics(
       numLoans,
