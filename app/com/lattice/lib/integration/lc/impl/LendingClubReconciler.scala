@@ -282,17 +282,24 @@ class LendingClubReconciler(
     val loanOriginationByGrade: Map[String, Long] = loanListingM.loans.groupBy(_.grade).mapValues(_.count( loan => loan.listD.toLocalDate == LocalDate.now()))
     val loanOriginationByYield: Map[Double, Long] = loanListingM.loans.groupBy(_.intRate).mapValues(_.count( loan => loan.listD.toLocalDate == LocalDate.now()))
 
-    val originatedNotional: Long = (loanListingM.loans collect {
-      case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
-    }).sum.toLong
-//    val originatedNotionalByGrade: Map[LocalDate, Map[Grade.Value, Long]] = ???
-//    val originatedNotionalByYield: Map[LocalDate, Map[Double, Long]] = ???
+    val originatedNotional: Long =
+      (loanListingM.loans collect {
+        case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
+      }).sum.toLong
+
+    val originatedNotionalByGrade: Map[String, Long] =
+      loanListingM.loans.groupBy(_.grade).mapValues(_.collect {
+        case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
+      }.sum.toLong)
+
+    val originatedNotionalByYield: Map[Double, Long] =
+      loanListingM.loans.groupBy(_.intRate).mapValues(_.collect {
+        case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
+      }.sum.toLong)
 
     val lendingClubMongoDb: LendingClubMongoDb = new LendingClubMongoDb(DbUtil.db)
 
     val yesterdayAnalytics: Future[LoanAnalytics] = lendingClubMongoDb.loadAnalyticsByDate(LocalDate.now())
-
-    println(loanOriginationByYield)
 
     yesterdayAnalytics.onComplete {
       case Success(analytics) =>
