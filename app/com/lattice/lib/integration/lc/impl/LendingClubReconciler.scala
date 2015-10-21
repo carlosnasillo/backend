@@ -280,7 +280,9 @@ class LendingClubReconciler(
     val loanOrigination: Map[LocalDate, Long] = loanListingM.loans.groupBy(_.listD.toLocalDate).mapValues(_.size)
     val loanOriginationByGrade: Map[LocalDate, Map[String, Long]] = loanListingM.loans.groupBy(_.listD.toLocalDate).mapValues(_.groupBy(_.grade).mapValues(_.size))
     val loanOriginationByYield: Map[LocalDate, Map[Double, Long]] = loanListingM.loans.groupBy(_.listD.toLocalDate).mapValues(_.groupBy(_.intRate).mapValues(_.size))
-//    val originatedNotional: Map[LocalDate, Long] =
+    val originatedNotional: Long = (loanListingM.loans collect {
+      case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
+    }).sum.toLong
 //    val originatedNotionalByGrade: Map[LocalDate, Map[Grade.Value, Long]] = ???
 //    val originatedNotionalByYield: Map[LocalDate, Map[Double, Long]] = ???
 
