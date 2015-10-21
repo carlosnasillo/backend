@@ -21,6 +21,10 @@ import models.Term
  * @author ze97286
  */
 trait MarketplacePortfolioAnalytics extends Log {
+  protected var portfolios: Map[String, Portfolio] = _
+  
+  def resetPortfolios(p: Map[String, Portfolio]) { portfolios = p }
+  
   def originator: Originator.Value
 
   // how much principal is invested in the market pending to be returned

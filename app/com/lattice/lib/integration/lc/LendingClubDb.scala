@@ -9,31 +9,35 @@
 package com.lattice.lib.integration.lc
 
 import com.lattice.lib.integration.lc.model.LoanListing
-import com.lattice.lib.integration.lc.model.NoteWrapper
+import com.lattice.lib.integration.lc.model.OrderPlaced
+import com.lattice.lib.integration.lc.model.Transaction
 import com.lattice.lib.utils.Log
+
 import play.api.libs.json.JsValue
 
 /**
  * Trait for lending club data persistence
  *
  * TODO add whatever is needed by the analytics API
- * 
+ *
  * @author ze97286
  */
 trait LendingClubDb extends Log {
   // persist loan listing to lattice database
-  def persistLoans(availableLoans: JsValue): Unit
+  def persistLoans(availableLoans: LoanListing): Unit
 
   // load currently available loans from lattice database
   def availableLoans: LoanListing
 
-  // load a note by order id
-  def loadNote(orderId: Int, loanId: Int): NoteWrapper
+  // upsert an order
+  def persistOrder(orderPlaced: OrderPlaced)
 
-  // update a note
-  def updateNote(note: NoteWrapper): Unit
+  // load an order
+  def loadOrders: Seq[OrderPlaced]
 
-  // insert a note
-  def persistNote(note: NoteWrapper): Unit
-  
+  // persist a transfer or withdrawal transaction
+  def persistTransaction(transaction: Transaction)
+
+  // load all transactions 
+  def loadTransactions: Seq[Transaction]
 }

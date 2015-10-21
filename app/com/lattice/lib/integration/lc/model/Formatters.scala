@@ -19,8 +19,9 @@ object Formatters {
   implicit val executionReportFormat = Json.format[ExecutionReport]
   implicit val noteFormat = Json.format[LendingClubNote]
   implicit val notesFormat = Json.format[OwnedNotes]
+  implicit val orderPlacedFormat = Json.format[OrderPlaced]
   implicit val loanFormat = Json.format[LendingClubLoan]
   implicit val loanListingFormat = Json.format[LoanListing]
   implicit val accountSummaryFormat = Json.format[AccountSummary]
-  implicit val noteAndContrctFormat = Json.format[NoteWrapper]
+  implicit val transactionFormat = Json.format[Transaction]
 }

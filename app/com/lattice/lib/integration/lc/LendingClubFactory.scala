@@ -13,18 +13,17 @@ import com.lattice.lib.integration.lc.impl.LendingClubConnectionImpl
 import com.lattice.lib.integration.lc.impl.LendingClubMongoDb
 import com.lattice.lib.integration.lc.impl.LendingClubPortfolioAnalytics
 import com.lattice.lib.integration.lc.impl.LendingClubPortfolioManager
-import com.lattice.lib.investor.InvestorDbFactory
 import com.lattice.lib.portfolio.MarketPlaceFactory
 import com.lattice.lib.utils.DbUtil
 
 /**
  * TODO change this to proper DI
- * 
+ *
  * @author ze97286
  */
 object LendingClubFactory extends MarketPlaceFactory {
   private val db = new LendingClubMongoDb(DbUtil.db)
   override val analytics = new LendingClubAnalytics(db)
   override val portfolio = new LendingClubPortfolioAnalytics(db)
-  override val manager = new LendingClubPortfolioManager(InvestorDbFactory.db, db, LendingClubConnectionImpl)
+  override val manager = new LendingClubPortfolioManager(db, LendingClubConnectionImpl)
 }

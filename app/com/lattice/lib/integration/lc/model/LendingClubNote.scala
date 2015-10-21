@@ -9,6 +9,7 @@ package com.lattice.lib.integration.lc.model
 
 import models.Term
 import java.time.ZonedDateTime
+import models.Grade
 
 /**
  * @author ze97286
@@ -24,7 +25,7 @@ case class LendingClubNote(
   grade: String,
   loanAmount: BigDecimal,
   noteAmount: BigDecimal,
-  currentPaymentStatus: String,
+  currentPaymentStatus: Option[String],
   creditTrend: String,
   paymentsReceived: BigDecimal,
   accruedInterest: BigDecimal,
@@ -32,13 +33,15 @@ case class LendingClubNote(
   interestPending: BigDecimal,
   principalReceived: BigDecimal,
   interestReceived: BigDecimal,
-  nextPaymentDate: ZonedDateTime,
-  issueDate: ZonedDateTime,
+  nextPaymentDate: Option[ZonedDateTime],
+  issueDate: Option[ZonedDateTime],
   orderDate: ZonedDateTime,
   purpose: String,
   loanStatusDate: ZonedDateTime
   ) {
  
+  val gradeEnum=Grade.withName(grade)
+  
   val loanLengthEnum=loanLength match {
     case 24=> Term._24
     case 36=> Term._36

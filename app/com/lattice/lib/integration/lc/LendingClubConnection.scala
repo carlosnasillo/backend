@@ -28,7 +28,7 @@ trait LendingClubConnection extends Log {
   def ownedNotes: Seq[LendingClubNote]
 
   // get a sequence of available loans
-  def availableLoans: JsValue
+  def availableLoans: LoanListing
 
   // transfer funds to lattice account with Lending Club
   def transferFunds(amount: BigDecimal)

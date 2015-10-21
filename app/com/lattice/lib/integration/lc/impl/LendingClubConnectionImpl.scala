@@ -27,16 +27,13 @@ import com.lattice.lib.integration.lc.model.LoanListing
 import com.lattice.lib.integration.lc.model.Order
 import com.lattice.lib.integration.lc.model.Orders
 import com.lattice.lib.integration.lc.model.OwnedNotes
+
 import play.api.libs.json.Json
 import scalaj.http.Http
-import play.api.libs.json.JsValue
-import models.Grade
 
 /**
  * Implementation for lending club connection api
  *
- * TODO need to look at why available loans is taking so much time to serialise - maybe need to change to use csv format or xml
- * TODO fix ownedNotes
  * TODO add full logging
  * TODO test all
  *
@@ -79,11 +76,12 @@ object LendingClubConnectionImpl extends LendingClubConnection {
   /**
    * Get the currently available loans listing
    */
-  override def availableLoans: JsValue = {
+  override def availableLoans: LoanListing = {
     val loansString = Http(LendingClubConfig.LoanListingUrl)
       .headers((AuthorisationHeader, Authorisation),
         (ApiKeyHeader, ApiKey)).asString.body
-    Json.parse(loansString)
+    val loansJson = Json.parse(loansString)
+    Json.fromJson[LoanListing](loansJson).asOpt.get
   }
 
   /**
