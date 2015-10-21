@@ -7,8 +7,12 @@
  */
 package com.lattice.lib.integration.lc.impl
 
+import java.time.LocalDate
+
 import com.lattice.lib.integration.lc.LendingClubConnection
 import com.lattice.lib.integration.lc.LendingClubDb
+import com.lattice.lib.integration.lc.model.{LoanAnalytics, LendingClubNote, NoteWrapper}
+import com.lattice.lib.investor.InvestorDb
 import com.lattice.lib.integration.lc.LendingClubFactory
 import com.lattice.lib.integration.lc.model.Formatters.loanListingFormat
 import com.lattice.lib.integration.lc.model.LendingClubLoan
@@ -16,6 +20,8 @@ import com.lattice.lib.integration.lc.model.LendingClubNote
 import com.lattice.lib.integration.lc.model.LoanListing
 import com.lattice.lib.integration.lc.model.OrderPlaced
 import com.lattice.lib.utils.Log
+import models.{Grade, Originator}
+import play.api.libs.json.{JsArray, Json, JsValue}
 
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
@@ -25,7 +31,7 @@ import play.api.libs.json.Json
  *
  * TODO add logging
  * TODO add error handling
- * TODO verify note analysis logic + add handling for various states - e.g late
+ * TODO verify note analysis logic + add handling for various states - e.g late 
  * TODO add contract interaction
  * @author ze97286
  */
