@@ -7,14 +7,16 @@
  */
 package com.lattice.lib.integration.lc.impl
 
+import java.time.LocalDate
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.lattice.lib.integration.lc.{LendingClubConnection, LendingClubDb, LendingClubFactory}
-import com.lattice.lib.integration.lc.model.{LendingClubLoan, LendingClubNote, LoanListing, OrderPlaced}
-import com.lattice.lib.utils.Log
-import models.Grade
-import play.api.libs.json.JsValue
-import play.libs.Json
+import com.lattice.lib.integration.lc.model.Formatters.loanListingFormat
+import com.lattice.lib.integration.lc.model.{LendingClubLoan, LendingClubNote, LoanListing, OrderPlaced, _}
+import com.lattice.lib.utils.{DbUtil, Log}
+import play.api.libs.json.{JsValue, Json}
+
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 /**
  * The reconciler is run periodically and reconciles the loans, notes, and accounts database with the state in lending club
@@ -25,6 +27,31 @@ import play.libs.Json
  * TODO add contract interaction
  * @author ze97286
  */
+
+object test {
+  def main(args: Array[String]) {
+    val lendingClubMongoDb: LendingClubMongoDb = new LendingClubMongoDb(DbUtil.db)
+
+    /*lendingClubMongoDb.persistAnalytics(
+      LoanAnalytics(
+        LocalDate.now(),
+        1,
+        1,
+        Map(),
+        Map(),
+        2: Double,
+        3: Double,
+        Map(),
+        Map(),
+        Map(),
+        Map(),
+        Map(),
+        Map()
+      ))*/
+
+    new LendingClubReconciler(null, null, null).calculateLoanAnalytics(null)
+  }
+}
 
 class LendingClubReconciler(
   lc: LendingClubConnection, // access to lending club api
@@ -38,6 +65,8 @@ class LendingClubReconciler(
     reconcileAvailableLoans(availableLoans.loans)
     reconcileOwnedNotes(ownedNotes, availableLoans.loans, placedOrders)
   }
+
+  implicit val ec = ExecutionContext.Implicits.global
 
   /**
    * persist current available loans from lending club
@@ -246,33 +275,45 @@ class LendingClubReconciler(
 
     val numLoans: Long = loanListingM.loans.size
     val liquidity: Long = loanListingM.loans.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong
-    val numLoansByGrade: Map[Grade.Value, Long] = loanListingM.loans.groupBy(_.gradeEnum).mapValues(_.size)
-    val liquidityByGrade: Map[Grade.Value, Long] = loanListingM.loans.groupBy(_.gradeEnum).mapValues(_.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong)
-//    val dailyChangeInNumLoans: Double = ???
-//    val dailyChangeInLiquidity: Double = ???
+    val numLoansByGrade: Map[String, Long] = loanListingM.loans.groupBy(_.grade).mapValues(_.size)
+    val liquidityByGrade: Map[String, Long] = loanListingM.loans.groupBy(_.grade).mapValues(_.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong)
     val loanOrigination: Map[LocalDate, Long] = loanListingM.loans.groupBy(_.listD.toLocalDate).mapValues(_.size)
-    val loanOriginationByGrade: Map[LocalDate, Map[Grade.Value, Long]] = loanListingM.loans.groupBy(_.listD.toLocalDate).mapValues(_.groupBy(_.gradeEnum).mapValues(_.size))
+    val loanOriginationByGrade: Map[LocalDate, Map[String, Long]] = loanListingM.loans.groupBy(_.listD.toLocalDate).mapValues(_.groupBy(_.grade).mapValues(_.size))
     val loanOriginationByYield: Map[LocalDate, Map[Double, Long]] = loanListingM.loans.groupBy(_.listD.toLocalDate).mapValues(_.groupBy(_.intRate).mapValues(_.size))
-//    val originatedNotional: Map[LocalDate, Long] = ???
+//    val originatedNotional: Map[LocalDate, Long] =
 //    val originatedNotionalByGrade: Map[LocalDate, Map[Grade.Value, Long]] = ???
 //    val originatedNotionalByYield: Map[LocalDate, Map[Double, Long]] = ???
 
-    println(loanOriginationByYield)
+    val lendingClubMongoDb: LendingClubMongoDb = new LendingClubMongoDb(DbUtil.db)
 
-    /*LoanAnalytics(
-      numLoans,
-      liquidity,
-      numLoansByGrade,
-      liquidityByGrade,
-      dailyChangeInNumLoans,
-      dailyChangeInLiquidity,
-      loanOrigination,
-      loanOriginationByGrade,
-      loanOriginationByYield,
-      originatedNotional,
-      originatedNotionalByGrade,
-      originatedNotionalByYield
-    )*/
+    val yesterdayAnalytics: Future[LoanAnalytics] = lendingClubMongoDb.loadAnalyticsByDate(LocalDate.now())
+
+    yesterdayAnalytics.onComplete {
+      case Success(analytics) =>
+          val dailyChangeInNumLoans: Double = numLoans - analytics.numLoans
+          val dailyChangeInLiquidity: Double = liquidity - analytics.liquidity
+
+          /*val todaysAnalytics = LoanAnalytics(
+            LocalDate.now(),
+            numLoans,
+            liquidity,
+            numLoansByGrade,
+            liquidityByGrade,
+            dailyChangeInNumLoans,
+            dailyChangeInLiquidity,
+            loanOrigination,
+            loanOriginationByGrade,
+            loanOriginationByYield,
+            originatedNotional,
+            originatedNotionalByGrade,
+            originatedNotionalByYield
+          )*/
+
+          println(loanListingM)
+
+//          lendingClubMongoDb.persistAnalytics(todaysAnalytics)
+      case _                  => log.error("failed to load analytics listing from db")
+    }
   }
 
   /**

@@ -8,31 +8,22 @@
 
 package com.lattice.lib.integration.lc.impl
 
-import java.time.ZonedDateTime
-
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
-import scala.concurrent.TimeoutException
-import scala.concurrent.duration.Duration
-import scala.util.Failure
-import scala.util.Success
+import java.time.{LocalDate, ZonedDateTime}
 
 import com.lattice.lib.integration.lc.LendingClubDb
-import com.lattice.lib.integration.lc.model.Formatters.loanListingFormat
-import com.lattice.lib.integration.lc.model.Formatters.orderPlacedFormat
-import com.lattice.lib.integration.lc.model.Formatters.transactionFormat
+import com.lattice.lib.integration.lc.model.Formatters.{loanAnalyticsFormat, loanListingFormat, orderPlacedFormat}
+import com.lattice.lib.integration.lc.model.LoanAnalytics
 
-import com.lattice.lib.integration.lc.model.LoanListing
-import com.lattice.lib.integration.lc.model.OrderPlaced
-import com.lattice.lib.integration.lc.model.Transaction
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.{Failure, Success}matters.transactionFormat
 
-import play.api.libs.json.JsObject
-import play.api.libs.json.Json
+import com.lattice.lib.integration.lc.model.{LoanListing, OrderPlaced}
+import play.api.libs.json.{JsObject, Json}
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.modules.reactivemongo.json.JsObjectDocumentWriter
 import play.modules.reactivemongo.json.collection.JSONCollectionProducer
 import reactivemongo.api.DefaultDB
-
 /**
  * TODO implement all
  * TODO add logging
@@ -75,22 +66,35 @@ class LendingClubMongoDb(db: DefaultDB) extends LendingClubDb {
     Await.ready(future, Duration.Inf)
   }
 
+  override def persistAnalytics(loanAnalytics: LoanAnalytics): Unit = {
+    val loanAnalyticsCol = db.collection("loanAnalytics")
+    val future = loanAnalyticsCol.insert(Json.toJson(loanAnalytics).as[JsObject])
+    future.onComplete {
+      case Failure(e) => throw e
+      case Success(lastError) => log.info(s"successfully inserted document: $lastError")
+    }
+  }
+
   override def loadOrders: Seq[OrderPlaced] = {
     val collection = db.collection("orders")
     val futureList = collection.find(Json.obj()).cursor[OrderPlaced].toList(Int.MaxValue)
     Await.ready(futureList, Duration.Inf).value.get.toOption.getOrElse(Seq.empty)
   }
-  
-  override def loadTransactions: Seq[Transaction] = {
-    val collection = db.collection("transactions")
-    val futureList = collection.find(Json.obj()).cursor[Transaction].toList(Int.MaxValue)
-    Await.ready(futureList, Duration.Inf).value.get.toOption.getOrElse(Seq.empty)
+
+  // TODO : there is probably a way to avoid created_on as _id is made from the date itself. See if we can request on it directly
+  override def loadAnalyticsByDate(date: LocalDate): Future[LoanAnalytics] = {
+    val loansAnalytics = db.collection("loanAnalytics")
+    val query = Json.obj("created_on" -> Json.obj("$gte" -> date.minusDays(1), "$lt" -> date.plusDays(1)))
+    loansAnalytics.find(query).one[JsObject].map { optAnalytics =>
+      Json.fromJson[LoanAnalytics](optAnalytics.get).asOpt.get
+    }
+
+//    var analytics: Option[LoanAnalytics] = None
+//    loansAnalyticsJsonFuture.onComplete {
+//      case Success(optAnalytics) =>
+//        analytics = Some(Json.fromJson[LoanAnalytics](optAnalytics.get).asOpt.get)
+//      case _                   => log.error("failed to load loan listing from db")
+//    }
+//    analytics
   }
-  
-  override def persistTransaction(transaction:Transaction) = {
-    val orders = db.collection("transactions")
-    val transactionJs = Json.toJson(transaction).as[JsObject]
-    val future = orders.insert(transaction)
-    Await.ready(future, Duration.Inf)
-  }
-}
+}  

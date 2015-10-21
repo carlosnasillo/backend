@@ -8,12 +8,14 @@
 
 package com.lattice.lib.integration.lc
 
-import com.lattice.lib.integration.lc.model.LoanListing
-import com.lattice.lib.integration.lc.model.OrderPlaced
-import com.lattice.lib.integration.lc.model.Transaction
+import java.time.LocalDate
+
+import com.lattice.lib.integration.lc.model.{LoanAnalytics, LoanListing, OrderPlaced, Transaction}
 import com.lattice.lib.utils.Log
 
 import play.api.libs.json.JsValue
+
+import scala.concurrent.Future
 
 /**
  * Trait for lending club data persistence
@@ -40,4 +42,11 @@ trait LendingClubDb extends Log {
 
   // load all transactions 
   def loadTransactions: Seq[Transaction]
+  
+  // persists loans analytics to lattice db
+  def persistAnalytics(loanAnalytics: LoanAnalytics): Unit
+
+  // load loans analytics from lattice db
+  def loadAnalyticsByDate(date: LocalDate): Future[LoanAnalytics]
+
 }
