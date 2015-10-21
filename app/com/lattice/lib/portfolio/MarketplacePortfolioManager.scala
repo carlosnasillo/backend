@@ -22,14 +22,11 @@ trait MarketplacePortfolioManager extends Log {
   def submitOrder(investorId: String, loanId: String, amount: BigDecimal)
 
   // transfer funds from lattice to marketplace - this needs to be called when money is transferred by an investor to be invested in a marketplace
-  def transferFunds(amount: BigDecimal)
+  def transferFunds(investorId:String, amount: BigDecimal)
 
   // withdraw funds from marketplace to lattice - this needs to be called when investor wants to withdraw money from a marketplace
-  def withdrawFunds(amount: BigDecimal)
+  def withdrawFunds(investorId:String, amount: BigDecimal)
 
-  // reconcile available loans from the originator
-  def reconcileAvailableLoans: Unit
-
-  // reconcile owned notes for investors in the originator
-  def reconcileOwnedNotes: Unit
+  // reconcile state with market
+  def reconcileWithMarket: Unit
 }

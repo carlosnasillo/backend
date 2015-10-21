@@ -8,11 +8,15 @@
 
 package com.lattice.lib.integration.lc.impl
 
+import java.time.ZonedDateTime
+
+import scala.math.BigDecimal.int2bigDecimal
+
 import com.lattice.lib.integration.lc.LendingClubConnection
 import com.lattice.lib.integration.lc.LendingClubDb
-import com.lattice.lib.integration.lc.model.NoteWrapper
 import com.lattice.lib.integration.lc.model.Order
-import com.lattice.lib.investor.InvestorDb
+import com.lattice.lib.integration.lc.model.OrderPlaced
+import com.lattice.lib.integration.lc.model.Transaction
 import com.lattice.lib.portfolio.MarketplacePortfolioManager
 
 import models.Originator
@@ -25,10 +29,10 @@ import models.Originator
  *
  * @author ze97286
  */
-class LendingClubPortfolioManager(investorDb: InvestorDb, db: LendingClubDb, lc: LendingClubConnection) extends MarketplacePortfolioManager {
+class LendingClubPortfolioManager(db: LendingClubDb, lc: LendingClubConnection) extends MarketplacePortfolioManager {
   override val originator = Originator.LendingClub
 
-  private val reconciler = new LendingClubReconciler(investorDb, lc, db)
+  private val reconciler = new LendingClubReconciler(lc, db)
 
   /**
    * submit an order to lending club
@@ -36,10 +40,9 @@ class LendingClubPortfolioManager(investorDb: InvestorDb, db: LendingClubDb, lc:
    * TODO sanity checks
    */
   def submitOrder(investorId: String, loanId: String, amount: BigDecimal) = {
-    // need to check that the investor id has sufficient funds in lattice 
-    // load investor details from db and check if its current fund > amount
-    if (investorDb.investorAccount(investorId, originator).availableCash < amount) {
-      throw new Exception("insufficient funds")
+    //TODO this needs to be transactional in the sense that a crash anywhere in the flow should be recoverable
+    if (AccountBalanceManagerImpl.accountBalance(investorId).availableCash < amount) {
+      throw new IllegalArgumentException("Insufficient funds")
     }
 
     val er = lc.submitOrder(Seq(Order(loanId.toInt, amount)))
@@ -47,38 +50,27 @@ class LendingClubPortfolioManager(investorDb: InvestorDb, db: LendingClubDb, lc:
     // analyse the order result
     val investedAmount = er.orderConfirmations.head.investedAmount
     if (investedAmount > 0) {
-      val noteOpt = (lc.ownedNotes filter (x => (x.loanId == loanId) && (x.orderId == er.orderInstructId))).headOption
-
-      // TODO sanity - check that the invested amount matches the note
-      
-      // persist the note to db
-      noteOpt match {
-        case None       => // should not happen TODO handle as error
-        case Some(note) => db.persistNote(NoteWrapper(note, investorId, ""))
-         // investmentPending
-      }
+      val order = OrderPlaced(investorId, er.orderInstructId, loanId.toInt, None, investedAmount, ZonedDateTime.now, None, 0, "pending")
+      db.persistOrder(order)
+      AccountBalanceManagerImpl.newPendingOrder(order)
     } else {
       // TODO return error result
     }
   }
 
-  // reconcile available loans from the originator
-  override def reconcileAvailableLoans {
-    reconciler.reconcileAvailableLoans
-  }
-
-  // reconcile owned notes for investors in the originator
-  override def reconcileOwnedNotes {
-    reconciler.reconcileOwnedNotes
+  override def reconcileWithMarket {
+    reconciler.reconcileWithMarket
   }
 
   // send funds from Lattice to Lending Club
-  override def transferFunds(amount: BigDecimal) {
+  override def transferFunds(investorId: String, amount: BigDecimal) {
+    db.persistTransaction(Transaction(investorId, ZonedDateTime.now, amount))
     lc.transferFunds(amount)
   }
 
   // withdraw funds form Lending Club back to lattice
-  override def withdrawFunds(amount: BigDecimal) = {
+  override def withdrawFunds(investorId: String, amount: BigDecimal) = {
+    db.persistTransaction(Transaction(investorId, ZonedDateTime.now, -amount))
     lc.withdrawFunds(amount)
   }
 }

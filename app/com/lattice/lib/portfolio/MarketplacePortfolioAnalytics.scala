@@ -21,6 +21,10 @@ import models.Term
  * @author ze97286
  */
 trait MarketplacePortfolioAnalytics extends Log {
+  protected var portfolios: Map[String, Portfolio] = _
+  
+  def resetPortfolios(p: Map[String, Portfolio]) { portfolios = p }
+  
   def originator: Originator.Value
 
   // how much principal is invested in the market pending to be returned
@@ -75,7 +79,7 @@ trait MarketplacePortfolioAnalytics extends Log {
   def notesAcquiredTodayByPurpose(investorId: String): Map[String, Int]
 
   // how many notes were acquired in the given period
-  def notesAcquired(investorId: String, from: LocalDate, to: LocalDate)
+  def notesAcquired(investorId: String, from: LocalDate, to: LocalDate):Map[LocalDate,Int] 
 
   // how many notes were acquired by the given period by Grade
   def notesAcquiredByGrade(investorId: String, from: LocalDate, to: LocalDate): Map[LocalDate, Map[Grade.Value, Int]]
@@ -90,24 +94,24 @@ trait MarketplacePortfolioAnalytics extends Log {
   def amountInvestedToday(investorId: String): BigDecimal
 
   // how much was invested in notes today by grade
-  def amountInvestedTodayByGrade(investorId: String): Map[Grade.Value, Int]
+  def amountInvestedTodayByGrade(investorId: String): Map[Grade.Value, BigDecimal]
 
   // how much was invested in notes today by yield buckets
-  def amountInvestedTodayByYield(investorId: String): Map[(Double, Double), Int]
+  def amountInvestedTodayByYield(investorId: String): Map[(Double, Double), BigDecimal]
 
   // how much was invested in notes today by purpose 
-  def amountInvestedTodayByPurpose(investorId: String): Map[String, Int]
+  def amountInvestedTodayByPurpose(investorId: String): Map[String, BigDecimal]
 
   // how much was invested in notes in the given period
-  def amountInvested(investorId: String, from: LocalDate, to: LocalDate): BigDecimal
+  def amountInvested(investorId: String, from: LocalDate, to: LocalDate):  Map[LocalDate,BigDecimal]
 
   // how much was invested in notes in the given period by grade 
   def amountInvestedByGrade(investorId: String, from: LocalDate, to: LocalDate): Map[LocalDate, Map[Grade.Value, BigDecimal]]
 
   // how much was invested in notes in the given period by yield buckets
-  def amountInvestedByYield(investorId: String, from: LocalDate, to: LocalDate): Map[LocalDate, Map[(Double, Double), Long]]
+  def amountInvestedByYield(investorId: String, from: LocalDate, to: LocalDate): Map[LocalDate, Map[(Double, Double), BigDecimal]]
 
   // how much was invested in notes in the given period by purpose
-  def amountInvestedByPurpose(investorId: String, from: LocalDate, to: LocalDate): Map[LocalDate, Map[String, Long]]
+  def amountInvestedByPurpose(investorId: String, from: LocalDate, to: LocalDate): Map[LocalDate, Map[String, BigDecimal]]
 
 }

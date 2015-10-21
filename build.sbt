@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.reactivemongo" %% "play2-reactivemongo" % "0.11.2.play24")
+  "org.reactivemongo" %% "play2-reactivemongo" % "0.11.7.play24")
 
 libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "1.1.5"
 
