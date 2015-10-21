@@ -8,6 +8,7 @@
 package com.lattice.lib.integration.lc.impl
 
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.lattice.lib.integration.lc.{LendingClubConnection, LendingClubDb, LendingClubFactory}
 import com.lattice.lib.integration.lc.model.{LendingClubLoan, LendingClubNote, LoanListing, OrderPlaced}
 import com.lattice.lib.utils.Log
@@ -239,13 +240,14 @@ class LendingClubReconciler(
                         }
                 ]
             }
+      """)
 
-    val loanListingM = LendingClubConnectionImpl.availableLoans
+    val loanListingM = Json.fromJson[LoanListing](model).asOpt.get
 
     val numLoans: Long = loanListingM.loans.size
-//    val liquidity: Long =
-    val numLoansByGrade: Map[Grade.Value, Long] = loanListingM.loans.groupBy(lcl => lcl.gradeEnum).mapValues(_.size)
-//    val liquidityByGrade: Map[Grade.Value, Long] = ???
+    val liquidity: Long = loanListingM.loans.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong
+    val numLoansByGrade: Map[Grade.Value, Long] = loanListingM.loans.groupBy(_.gradeEnum).mapValues(_.size)
+    val liquidityByGrade: Map[Grade.Value, Long] = loanListingM.loans.groupBy(_.gradeEnum).mapValues(_.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong)
 //    val dailyChangeInNumLoans: Double = ???
 //    val dailyChangeInLiquidity: Double = ???
 //    val loanOrigination: Map[LocalDate, Long] = ???
@@ -255,7 +257,7 @@ class LendingClubReconciler(
 //    val originatedNotionalByGrade: Map[LocalDate, Map[Grade.Value, Long]] = ???
 //    val originatedNotionalByYield: Map[LocalDate, Map[Double, Long]] = ???
 
-    println(numLoansByGrade)
+    println(liquidityByGrade)
 
     /*LoanAnalytics(
       numLoans,
