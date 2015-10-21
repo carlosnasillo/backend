@@ -28,15 +28,15 @@ case class LendingClubLoan(
     installment: Double,
     grade: String,
     subGrade: String,
-    empLength: Int,
-    homeOwnership: String,
-    annualInc: Double,
+    empLength: Option[Int],
+    homeOwnership: Option[String],
+    annualInc: Option[Double],
     reviewStatusD: Option[ZonedDateTime],
     reviewStatus: String,
     desc: Option[String],
     purpose: String,
-    addrZip: String,
-    addrState: String,
+    addrZip: Option[String],
+    addrState: Option[String],
     investorCount: Option[Int]) {
   val termEnum = term match {
     case 24 => Term._24
@@ -46,7 +46,7 @@ case class LendingClubLoan(
   }
 
   val gradeEnum = Grade.withName(grade)
-  val homeOwnershipEnum = HomeOwnership.withName(homeOwnership)
+  val homeOwnershipEnum = HomeOwnership.withName(homeOwnership.get)
   val reviewStatusEnum = ReviewStatus.withName(reviewStatus)
   val purposeEnum = Purpose.withName(purpose)
 }
