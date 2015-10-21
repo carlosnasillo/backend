@@ -31,6 +31,7 @@ case class LendingClubLoan(
     empLength: Option[Int],
     homeOwnership: Option[String],
     annualInc: Option[Double],
+    listD: ZonedDateTime,
     reviewStatusD: Option[ZonedDateTime],
     reviewStatus: String,
     desc: Option[String],
