@@ -9,11 +9,9 @@ package com.lattice.lib.integration.lc.impl
 
 import java.time.LocalDate
 
-import com.lattice.lib.integration.lc.{LendingClubConnection, LendingClubDb, LendingClubFactory}
-import com.lattice.lib.integration.lc.model.Formatters.loanListingFormat
 import com.lattice.lib.integration.lc.model.{LendingClubLoan, LendingClubNote, LoanListing, OrderPlaced, _}
+import com.lattice.lib.integration.lc.{LendingClubConnection, LendingClubDb, LendingClubFactory}
 import com.lattice.lib.utils.{DbUtil, Log}
-import play.api.libs.json.{JsValue, Json}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
@@ -27,32 +25,6 @@ import scala.util.Success
  * TODO add contract interaction
  * @author ze97286
  */
-
-object test {
-  def main(args: Array[String]) {
-    val lendingClubMongoDb: LendingClubMongoDb = new LendingClubMongoDb(DbUtil.db)
-
-    /*lendingClubMongoDb.persistAnalytics(
-      LoanAnalytics(
-        LocalDate.now(),
-        1,
-        1,
-        Map(),
-        Map(),
-        2: Double,
-        3: Double,
-        Map(),
-        Map(),
-        Map(),
-        Map(),
-        Map(),
-        Map()
-      ))*/
-
-    new LendingClubReconciler(null, null, null).calculateLoanAnalytics(null)
-  }
-}
-
 class LendingClubReconciler(
   lc: LendingClubConnection, // access to lending club api
   db: LendingClubDb) // access to lending club database
@@ -79,234 +51,41 @@ class LendingClubReconciler(
   }
   
   //TODO Julien - use this to calculate the analytics and persist the result to db
-  private[impl] def calculateLoanAnalytics(loanListing: LoanListing) {
-    val model: JsValue = Json.parse(
-      """
-        {
-          "asOfDate":"2015-10-20T05:58:49.506-07:00",
-          "loans":[
-              {
-                                "id" : 9712698,
-                                "memberId" : 11514201,
-                                "loanAmount" : 15000,
-                                "fundedAmount" : 1000,
-                                "term" : 36,
-                                "intRate" : 21.99,
-                                "expDefaultRate" : 10.55,
-                                "serviceFeeRate" : 1.11,
-                                "installment" : 572.78,
-                                "grade" : "E",
-                                "subGrade" : "E5",
-                                "empLength" : null,
-                                "homeOwnership" : "OWN",
-                                "annualInc" : 120000,
-                                "isIncV" : "NOT_VERIFIED",
-                                "acceptD" : "2015-10-15T20:03:48.000-07:00",
-                                "expD" : "2015-10-29T20:04:27.000-07:00",
-                                "listD" : "2015-10-21T20:04:27.000-07:00",
-                                "creditPullD" : "2015-10-15T20:03:45.000-07:00",
-                                "reviewStatusD" : null,
-                                "reviewStatus" : "NOT_APPROVED",
-                                "desc" : null,
-                                "purpose" : "house",
-                                "addrZip" : "110xx",
-                                "addrState" : "CA",
-                                "investorCount" : null,
-                                "ilsExpD" : "2015-11-01T11:04:51.000-08:00",
-                                "initialListStatus" : "F",
-                                "empTitle" : null,
-                                "accNowDelinq" : 0,
-                                "accOpenPast24Mths" : 23,
-                                "bcOpenToBuy" : 30000,
-                                "percentBcGt75" : 23,
-                                "bcUtil" : 23,
-                                "dti" : 0,
-                                "delinq2Yrs" : 1,
-                                "delinqAmnt" : 0,
-                                "earliestCrLine" : "1984-09-15T00:00:00.000-07:00",
-                                "ficoRangeLow" : 750,
-                                "ficoRangeHigh" : 754,
-                                "inqLast6Mths" : 0,
-                                "mthsSinceLastDelinq" : 90,
-                                "mthsSinceLastRecord" : 0,
-                                "mthsSinceRecentInq" : 14,
-                                "mthsSinceRecentRevolDelinq" : 23,
-                                "mthsSinceRecentBc" : 23,
-                                "mortAcc" : 23,
-                                "openAcc" : 3,
-                                "pubRec" : 0,
-                                "totalBalExMort" : 13944,
-                                "revolBal" : 1,
-                                "revolUtil" : 0,
-                                "totalBcLimit" : 23,
-                                "totalAcc" : 4,
-                                "totalIlHighCreditLimit" : 12,
-                                "numRevAccts" : 28,
-                                "mthsSinceRecentBcDlq" : 52,
-                                "pubRecBankruptcies" : 0,
-                                "numAcctsEver120Ppd" : 12,
-                                "chargeoffWithin12Mths" : 0,
-                                "collections12MthsExMed" : 0,
-                                "taxLiens" : 0,
-                                "mthsSinceLastMajorDerog" : 12,
-                                "numSats" : 8,
-                                "numTlOpPast12m" : 0,
-                                "moSinRcntTl" : 12,
-                                "totHiCredLim" : 12,
-                                "totCurBal" : 12,
-                                "avgCurBal" : 12,
-                                "numBcTl" : 12,
-                                "numActvBcTl" : 12,
-                                "numBcSats" : 7,
-                                "pctTlNvrDlq" : 12,
-                                "numTl90gDpd24m" : 12,
-                                "numTl30dpd" : 12,
-                                "numTl120dpd2m" : 12,
-                                "numIlTl" : 12,
-                                "moSinOldIlAcct" : 12,
-                                "numActvRevTl" : 12,
-                                "moSinOldRevTlOp" : 12,
-                                "moSinRcntRevTlOp" : 11,
-                                "totalRevHiLim" : 12,
-                                "numRevTlBalGt0" : 12,
-                                "numOpRevTl" : 12,
-                                "totCollAmt" : 12,
-                                "applicationType" : "INDIVIDUAL",
-                                "annualIncJoint" : null,
-                                "dtiJoint" : null,
-                                "isIncVJoint" : null
-                        },
-                        {
-                                "id" : 9712699,
-                                "memberId" : 11514202,
-                                "loanAmount" : 15000,
-                                "fundedAmount" : 0,
-                                "term" : 36,
-                                "intRate" : 21.99,
-                                "expDefaultRate" : 10.55,
-                                "serviceFeeRate" : 1.11,
-                                "installment" : 572.78,
-                                "grade" : "E",
-                                "subGrade" : "E5",
-                                "empLength" : null,
-                                "homeOwnership" : "OWN",
-                                "annualInc" : 120000,
-                                "isIncV" : "NOT_VERIFIED",
-                                "acceptD" : "2015-10-15T20:05:21.000-07:00",
-                                "expD" : "2015-10-29T20:06:04.000-07:00",
-                                "listD" : "2015-10-15T20:06:04.000-07:00",
-                                "creditPullD" : "2015-10-15T20:05:18.000-07:00",
-                                "reviewStatusD" : null,
-                                "reviewStatus" : "NOT_APPROVED",
-                                "desc" : null,
-                                "purpose" : "house",
-                                "addrZip" : "110xx",
-                                "addrState" : "CA",
-                                "investorCount" : null,
-                                "ilsExpD" : "2015-11-01T11:06:25.000-08:00",
-                                "initialListStatus" : "F",
-                                "empTitle" : null,
-                                "accNowDelinq" : 0,
-                                "accOpenPast24Mths" : 23,
-                                "bcOpenToBuy" : 30000,
-                                "percentBcGt75" : 23,
-                                "bcUtil" : 23,
-                                "dti" : 0,
-                                "delinq2Yrs" : 1,
-                                "delinqAmnt" : 0,
-                                "earliestCrLine" : "1984-09-15T00:00:00.000-07:00",
-                                "ficoRangeLow" : 750,
-                                "ficoRangeHigh" : 754,
-                                "inqLast6Mths" : 0,
-                                "mthsSinceLastDelinq" : 90,
-                                "mthsSinceLastRecord" : 0,
-                                "mthsSinceRecentInq" : 14,
-                                "mthsSinceRecentRevolDelinq" : 23,
-                                "mthsSinceRecentBc" : 23,
-                                "mortAcc" : 23,
-                                "openAcc" : 3,
-                                "pubRec" : 0,
-                                "totalBalExMort" : 13944,
-                                "revolBal" : 1,
-                                "revolUtil" : 0,
-                                "totalBcLimit" : 23,
-                                "totalAcc" : 4,
-                                "totalIlHighCreditLimit" : 12,
-                                "numRevAccts" : 28,
-                                "mthsSinceRecentBcDlq" : 52,
-                                "pubRecBankruptcies" : 0,
-                                "numAcctsEver120Ppd" : 12,
-                                "chargeoffWithin12Mths" : 0,
-                                "collections12MthsExMed" : 0,
-                                "taxLiens" : 0,
-                                "mthsSinceLastMajorDerog" : 12,
-                                "numSats" : 8,
-                                "numTlOpPast12m" : 0,
-                                "moSinRcntTl" : 12,
-                                "totHiCredLim" : 12,
-                                "totCurBal" : 12,
-                                "avgCurBal" : 12,
-                                "numBcTl" : 12,
-                                "numActvBcTl" : 12,
-                                "numBcSats" : 7,
-                                "pctTlNvrDlq" : 12,
-                                "numTl90gDpd24m" : 12,
-                                "numTl30dpd" : 12,
-                                "numTl120dpd2m" : 12,
-                                "numIlTl" : 12,
-                                "moSinOldIlAcct" : 12,
-                                "numActvRevTl" : 12,
-                                "moSinOldRevTlOp" : 12,
-                                "moSinRcntRevTlOp" : 11,
-                                "totalRevHiLim" : 12,
-                                "numRevTlBalGt0" : 12,
-                                "numOpRevTl" : 12,
-                                "totCollAmt" : 12,
-                                "applicationType" : "INDIVIDUAL",
-                                "annualIncJoint" : null,
-                                "dtiJoint" : null,
-                                "isIncVJoint" : null
-                        }
-                ]
-            }
-      """)
+  def calculateLoanAnalytics(loanListing: LoanListing) {
+    val numLoans: Long = loanListing.loans.size
+    val liquidity: Long = loanListing.loans.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong
+    val numLoansByGrade: Map[String, Long] = loanListing.loans.groupBy(_.grade).mapValues(_.size)
+    val liquidityByGrade: Map[String, Long] = loanListing.loans.groupBy(_.grade).mapValues(_.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong)
 
-    val loanListingM = Json.fromJson[LoanListing](model).asOpt.get
-
-    val numLoans: Long = loanListingM.loans.size
-    val liquidity: Long = loanListingM.loans.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong
-    val numLoansByGrade: Map[String, Long] = loanListingM.loans.groupBy(_.grade).mapValues(_.size)
-    val liquidityByGrade: Map[String, Long] = loanListingM.loans.groupBy(_.grade).mapValues(_.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong)
-
-    val loanOrigination: Long = loanListingM.loans.count( loan => loan.listD.toLocalDate == LocalDate.now())
-    val loanOriginationByGrade: Map[String, Long] = loanListingM.loans.groupBy(_.grade).mapValues(_.count( loan => loan.listD.toLocalDate == LocalDate.now()))
-    val loanOriginationByYield: Map[Double, Long] = loanListingM.loans.groupBy(_.intRate).mapValues(_.count( loan => loan.listD.toLocalDate == LocalDate.now()))
+    val loanOrigination: Long = loanListing.loans.count( loan => loan.listD.toLocalDate == LocalDate.now())
+    val loanOriginationByGrade: Map[String, Long] = loanListing.loans.groupBy(_.grade).mapValues(_.count( loan => loan.listD.toLocalDate == LocalDate.now()))
+    val loanOriginationByYield: Map[Double, Long] = loanListing.loans.groupBy(_.intRate).mapValues(_.count( loan => loan.listD.toLocalDate == LocalDate.now()))
 
     val originatedNotional: Long =
-      (loanListingM.loans collect {
+      (loanListing.loans collect {
         case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
       }).sum.toLong
 
     val originatedNotionalByGrade: Map[String, Long] =
-      loanListingM.loans.groupBy(_.grade).mapValues(_.collect {
+      loanListing.loans.groupBy(_.grade).mapValues(_.collect {
         case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
       }.sum.toLong)
 
     val originatedNotionalByYield: Map[Double, Long] =
-      loanListingM.loans.groupBy(_.intRate).mapValues(_.collect {
+      loanListing.loans.groupBy(_.intRate).mapValues(_.collect {
         case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
       }.sum.toLong)
 
     val lendingClubMongoDb: LendingClubMongoDb = new LendingClubMongoDb(DbUtil.db)
 
-    val yesterdayAnalytics: Future[LoanAnalytics] = lendingClubMongoDb.loadAnalyticsByDate(LocalDate.now())
+    val yesterdayAnalytics: Future[LoanAnalytics] = lendingClubMongoDb.loadAnalyticsByDate(LocalDate.now().minusDays(1))
 
     yesterdayAnalytics.onComplete {
       case Success(analytics) =>
           val dailyChangeInNumLoans: Double = numLoans - analytics.numLoans
           val dailyChangeInLiquidity: Double = liquidity - analytics.liquidity
 
-          /*val todaysAnalytics = LoanAnalytics(
+          val todaysAnalytics = LoanAnalytics(
             LocalDate.now(),
             numLoans,
             liquidity,
@@ -320,12 +99,10 @@ class LendingClubReconciler(
             originatedNotional,
             originatedNotionalByGrade,
             originatedNotionalByYield
-          )*/
+          )
 
-          println(loanListingM)
-
-//          lendingClubMongoDb.persistAnalytics(todaysAnalytics)
-      case _                  => log.error("failed to load analytics listing from db")
+          lendingClubMongoDb.persistAnalytics(todaysAnalytics)
+      case _ => log.error("failed to load analytics listing from db")
     }
   }
 

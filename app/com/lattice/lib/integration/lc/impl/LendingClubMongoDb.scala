@@ -84,17 +84,9 @@ class LendingClubMongoDb(db: DefaultDB) extends LendingClubDb {
   // TODO : there is probably a way to avoid created_on as _id is made from the date itself. See if we can request on it directly
   override def loadAnalyticsByDate(date: LocalDate): Future[LoanAnalytics] = {
     val loansAnalytics = db.collection("loanAnalytics")
-    val query = Json.obj("created_on" -> Json.obj("$gte" -> date.minusDays(1), "$lt" -> date.plusDays(1)))
+    val query = Json.obj("created_on" -> Json.obj("$gte" -> date, "$lt" -> date.plusDays(1)))
     loansAnalytics.find(query).one[JsObject].map { optAnalytics =>
       Json.fromJson[LoanAnalytics](optAnalytics.get).asOpt.get
     }
-
-//    var analytics: Option[LoanAnalytics] = None
-//    loansAnalyticsJsonFuture.onComplete {
-//      case Success(optAnalytics) =>
-//        analytics = Some(Json.fromJson[LoanAnalytics](optAnalytics.get).asOpt.get)
-//      case _                   => log.error("failed to load loan listing from db")
-//    }
-//    analytics
   }
 }  

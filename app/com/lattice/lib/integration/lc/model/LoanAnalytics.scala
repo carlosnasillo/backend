@@ -26,30 +26,13 @@ case class LoanAnalytics(
     liquidityByGrade: Map[String, Long],
     dailyChangeInNumLoans: Double,
     dailyChangeInLiquidity: Double,
-    loanOrigination: Map[LocalDate, Long],
-    loanOriginationByGrade: Map[LocalDate, Map[String, Long]],
-    loanOriginationByYield: Map[LocalDate, Map[Double, Long]],
-    originatedNotional: Map[LocalDate, Long],
-    originatedNotionalByGrade: Map[LocalDate, Map[String, Long]],
-    originatedNotionalByYield: Map[LocalDate, Map[Double, Long]]
+    loanOrigination: Long,
+    loanOriginationByGrade: Map[String, Long],
+    loanOriginationByYield: Map[Double, Long],
+    originatedNotional: Long,
+    originatedNotionalByGrade: Map[String, Long],
+    originatedNotionalByYield: Map[Double, Long]
 ) {
-
-  implicit val mapLocalDateReads: Reads[Map[LocalDate, Long]] = new Reads[Map[LocalDate, Long]] {
-    def reads(jv: JsValue): JsResult[Map[LocalDate, Long]] =
-      JsSuccess(jv.as[Map[String, Long]].map{case (k, v) =>
-        LocalDate.parse(k) -> v .asInstanceOf[Long]
-      })
-  }
-
-  implicit val mapLocalDateWrites: Writes[Map[LocalDate, Long]] = new Writes[Map[LocalDate, Long]] {
-    def writes(map: Map[LocalDate, Long]): JsValue =
-      Json.obj(map.map{case (k, o) =>
-        val ret: (String, JsValueWrapper) = k.toString -> o
-        ret
-      }.toSeq:_*)
-  }
-
-  implicit val mapLocalDateFormat: Format[Map[LocalDate, Long]] = Format(mapLocalDateReads, mapLocalDateWrites)
 
   private def enumifyMap(aMap: Map[String, Long]): Map[Grade, Long] =
     aMap map {
@@ -57,14 +40,7 @@ case class LoanAnalytics(
     }
 
   val numLoansByGradeEnum: Map[Grade, Long] = enumifyMap(numLoansByGrade)
-
   val liquidityByGradeEnum: Map[Grade, Long] = enumifyMap(numLoansByGrade)
-
-  val loanOriginationByGradeEnum: Map[LocalDate, Map[Grade, Long]] = loanOriginationByGrade map {
-    case (date, byGrade) => (date, enumifyMap(byGrade))
-  }
-
-  val originatedNotionalByGradeEnum: Map[LocalDate, Map[Grade, Long]] = originatedNotionalByGrade map {
-    case (date, byGrade) => (date, enumifyMap(byGrade))
-  }
+  val loanOriginationByGradeEnum: Map[Grade, Long] = enumifyMap(loanOriginationByGrade)
+  val originatedNotionalByGradeEnum: Map[Grade, Long] = enumifyMap(loanOriginationByGrade)
 }
