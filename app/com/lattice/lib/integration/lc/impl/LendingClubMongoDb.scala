@@ -8,21 +8,20 @@
 
 package com.lattice.lib.integration.lc.impl
 
-import java.time.{LocalDate, ZonedDateTime}
+import java.time.LocalDate
 
 import com.lattice.lib.integration.lc.LendingClubDb
 import com.lattice.lib.integration.lc.model.Formatters.{loanAnalyticsFormat, loanListingFormat, orderPlacedFormat, transactionFormat}
-import com.lattice.lib.integration.lc.model.{Transaction, LoanAnalytics, LoanListing, OrderPlaced}
-import com.lattice.lib.utils.DbUtil
+import com.lattice.lib.integration.lc.model.{LoanAnalytics, LoanListing, OrderPlaced, Transaction}
+import play.api.libs.json.Json.toJsFieldJsValueWrapper
+import play.api.libs.json.{JsObject, Json}
+import play.modules.reactivemongo.json.JsObjectDocumentWriter
+import play.modules.reactivemongo.json.collection.JSONCollectionProducer
+import reactivemongo.api.DefaultDB
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success}
-import play.api.libs.json.{JsObject, Json}
-import play.api.libs.json.Json.toJsFieldJsValueWrapper
-import play.modules.reactivemongo.json.JsObjectDocumentWriter
-import play.modules.reactivemongo.json.collection.JSONCollectionProducer
-import reactivemongo.api.DefaultDB
 /**
  * TODO implement all
  * TODO add logging
@@ -60,12 +59,16 @@ class LendingClubMongoDb(db: DefaultDB) extends LendingClubDb {
     Await.ready(future, Duration.Inf)
   }
 
-  override def persistAnalytics(loanAnalytics: LoanAnalytics): Unit = {
+  override def persistAnalytics(futureLoanAnalytics: Future[LoanAnalytics]): Unit = {
     val loanAnalyticsCol = db.collection("loanAnalytics")
-    val future = loanAnalyticsCol.insert(Json.toJson(loanAnalytics).as[JsObject])
-    future.onComplete {
+    futureLoanAnalytics.onComplete {
+      case Success(loanAnalytics) =>
+        val future = loanAnalyticsCol.insert(Json.toJson(loanAnalytics).as[JsObject])
+        future.onComplete {
+          case Failure(e) => throw e
+          case Success(lastError) => log.info(s"successfully inserted document: $lastError")
+        }
       case Failure(e) => throw e
-      case Success(lastError) => log.info(s"successfully inserted document: $lastError")
     }
   }
 

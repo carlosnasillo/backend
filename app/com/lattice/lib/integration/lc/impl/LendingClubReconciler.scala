@@ -48,10 +48,11 @@ class LendingClubReconciler(
     log.info("reconciling available loans")
     val availableLoans = lc.availableLoans
     db.persistLoans(availableLoans)
-    calculateLoanAnalytics(availableLoans)
+    val futureLoanAnalytics: Future[LoanAnalytics] = calculateLoanAnalytics(availableLoans)
+    db.persistAnalytics(futureLoanAnalytics)
   }
 
-  private[impl] def calculateLoanAnalytics(loanListing: LoanListing) {
+  private[impl] def calculateLoanAnalytics(loanListing: LoanListing): Future[LoanAnalytics] = {
     val numLoans: Int = loanListing.loans.size
     val liquidity: BigDecimal = loanListing.loans.sumBy[BigDecimal]( x => x.loanAmount - x.fundedAmount )
     val numLoansByGrade: Map[String, Int] = loanListing.loans.groupBy(_.grade).mapValues(_.size)
@@ -82,12 +83,11 @@ class LendingClubReconciler(
 
     val yesterdayAnalytics: Future[LoanAnalytics] = lendingClubMongoDb.loadAnalyticsByDate(LocalDate.now().minusDays(1))
 
-    yesterdayAnalytics.onComplete {
-      case Success(analytics) =>
+    yesterdayAnalytics.map{ analytics =>
         val dailyChangeInNumLoans: Int = numLoans - analytics.numLoans
         val dailyChangeInLiquidity: BigDecimal = liquidity - analytics.liquidity
 
-        val todaysAnalytics = LoanAnalytics(
+        LoanAnalytics(
           ZonedDateTime.now(),
           numLoans,
           liquidity,
@@ -102,9 +102,6 @@ class LendingClubReconciler(
           originatedNotionalByGrade,
           originatedNotionalByYield
         )
-
-        lendingClubMongoDb.persistAnalytics(todaysAnalytics)
-      case _ => log.error("failed to load analytics listing from db")
     }
   }
 
