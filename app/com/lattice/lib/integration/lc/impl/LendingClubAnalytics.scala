@@ -48,7 +48,7 @@ class LendingClubAnalytics(db: LendingClubDb) extends MarketplaceAnalytics {
   override def dailyChangeInLiquidity: Future[BigDecimal] = db.loadAnalyticsByDate(LocalDate.now()).map(_.dailyChangeInLiquidity)
 
   // read the latest doc from loans for each of the days in the range and for each return the number of loans *originated* on this day
-  override def loanOrigination(from: LocalDate, to: LocalDate): Future[Map[LocalDate, Long]] = {
+  override def loanOrigination(from: LocalDate, to: LocalDate): Future[Map[LocalDate, Int]] = {
     val mapOfFutures = dateRange(from, to)
         .map(date => (date, db.loadAnalyticsByDate(date).map(_.loanOrigination)))
         .toMap
@@ -57,7 +57,7 @@ class LendingClubAnalytics(db: LendingClubDb) extends MarketplaceAnalytics {
   }
 
   // read the latest doc from loans for each of the days in the range and for each return the number of loans  *originated* on this day partition by grade
-  override def loanOriginationByGrade(from: LocalDate, to: LocalDate): Future[Map[LocalDate, Map[Grade.Value, Long]]] = {
+  override def loanOriginationByGrade(from: LocalDate, to: LocalDate): Future[Map[LocalDate, Map[Grade.Value, Int]]] = {
     val mapOfFutures = dateRange(from, to)
       .map( date => (date, db.loadAnalyticsByDate(date).map(_.loanOriginationByGradeEnum)))
       .toMap
@@ -66,7 +66,7 @@ class LendingClubAnalytics(db: LendingClubDb) extends MarketplaceAnalytics {
   }
 
   // read the latest doc from loans for each of the days in the range and for each return the number of loans  *originated* on this day partition by yield
-  override def loanOriginationByYield(from: LocalDate, to: LocalDate): Future[Map[LocalDate, Map[Double, Long]]] = {
+  override def loanOriginationByYield(from: LocalDate, to: LocalDate): Future[Map[LocalDate, Map[Double, Int]]] = {
     val mapOfFutures = dateRange(from, to)
       .map( date => (date, db.loadAnalyticsByDate(date).map(_.loanOriginationByYield)))
       .toMap
@@ -75,7 +75,7 @@ class LendingClubAnalytics(db: LendingClubDb) extends MarketplaceAnalytics {
   }
 
   // read the latest doc from loans for each of the days in the range and for each return the sum of requested cash  *originated* on this day
-  override def originatedNotional(from: LocalDate, to: LocalDate): Future[Map[LocalDate, Long]] = {
+  override def originatedNotional(from: LocalDate, to: LocalDate): Future[Map[LocalDate, BigDecimal]] = {
     val mapOfFutures = dateRange(from, to)
       .map( date => (date, db.loadAnalyticsByDate(date).map(_.originatedNotional)))
       .toMap
@@ -84,7 +84,7 @@ class LendingClubAnalytics(db: LendingClubDb) extends MarketplaceAnalytics {
   }
 
   // read the latest doc from loans for each of the days in the range and for each return the sum of requested cash  *originated* on this day partition by grade
-  override def originatedNotionalByGrade(from: LocalDate, to: LocalDate): Future[Map[LocalDate, Map[Grade.Value, Long]]] = {
+  override def originatedNotionalByGrade(from: LocalDate, to: LocalDate): Future[Map[LocalDate, Map[Grade.Value, BigDecimal]]] = {
     val mapOfFutures = dateRange(from, to)
       .map( date => (date, db.loadAnalyticsByDate(date).map(_.originatedNotionalByGradeEnum)))
       .toMap
@@ -93,7 +93,7 @@ class LendingClubAnalytics(db: LendingClubDb) extends MarketplaceAnalytics {
   }
 
   // read the latest doc from loans for each of the days in the range and for each return the sum of requested cash  *originated* on this day partition by yield
-  override def originatedNotionalByYield(from: LocalDate, to: LocalDate): Future[Map[LocalDate, Map[Double, Long]]] = {
+  override def originatedNotionalByYield(from: LocalDate, to: LocalDate): Future[Map[LocalDate, Map[Double, BigDecimal]]] = {
     val mapOfFutures = dateRange(from, to)
       .map( date => (date, db.loadAnalyticsByDate(date).map(_.originatedNotionalByYield)))
       .toMap

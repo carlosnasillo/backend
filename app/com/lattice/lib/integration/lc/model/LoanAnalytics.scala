@@ -23,12 +23,12 @@ case class LoanAnalytics(
     liquidityByGrade: Map[String, BigDecimal],
     dailyChangeInNumLoans: Int,
     dailyChangeInLiquidity: BigDecimal,
-    loanOrigination: Long,
-    loanOriginationByGrade: Map[String, Long],
-    loanOriginationByYield: Map[Double, Long],
-    originatedNotional: Long,
-    originatedNotionalByGrade: Map[String, Long],
-    originatedNotionalByYield: Map[Double, Long]
+    loanOrigination: Int,
+    loanOriginationByGrade: Map[String, Int],
+    loanOriginationByYield: Map[Double, Int],
+    originatedNotional: BigDecimal,
+    originatedNotionalByGrade: Map[String, BigDecimal],
+    originatedNotionalByYield: Map[Double, BigDecimal]
 ) {
 
   val numLoansByGradeEnum: Map[Grade, Int] = numLoansByGrade map {
@@ -37,10 +37,10 @@ case class LoanAnalytics(
   val liquidityByGradeEnum: Map[Grade, BigDecimal] = liquidityByGrade map {
     case (grade, num) => (Grade.withName(grade), num)
   }
-  val loanOriginationByGradeEnum: Map[Grade, Long] = loanOriginationByGrade map {
+  val loanOriginationByGradeEnum: Map[Grade, Int] = loanOriginationByGrade map {
     case (grade, num) => (Grade.withName(grade), num)
   }
-  val originatedNotionalByGradeEnum: Map[Grade, Long] = loanOriginationByGrade map {
+  val originatedNotionalByGradeEnum: Map[Grade, BigDecimal] = originatedNotionalByGrade map {
     case (grade, num) => (Grade.withName(grade), num)
   }
 }

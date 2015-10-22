@@ -56,21 +56,21 @@ class LendingClubReconciler(
     val numLoansByGrade: Map[String, Int] = loanListing.loans.groupBy(_.grade).mapValues(_.size)
     val liquidityByGrade: Map[String, BigDecimal] = loanListing.loans.groupBy(_.grade).mapValues(_.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong)
 
-    val loanOrigination: Long = loanListing.loans.count(loan => loan.listD.toLocalDate == LocalDate.now())
-    val loanOriginationByGrade: Map[String, Long] = loanListing.loans.groupBy(_.grade).mapValues(_.count(loan => loan.listD.toLocalDate == LocalDate.now()))
-    val loanOriginationByYield: Map[Double, Long] = loanListing.loans.groupBy(_.intRate).mapValues(_.count(loan => loan.listD.toLocalDate == LocalDate.now()))
+    val loanOrigination: Int = loanListing.loans.count(loan => loan.listD.toLocalDate == LocalDate.now())
+    val loanOriginationByGrade: Map[String, Int] = loanListing.loans.groupBy(_.grade).mapValues(_.count(loan => loan.listD.toLocalDate == LocalDate.now()))
+    val loanOriginationByYield: Map[Double, Int] = loanListing.loans.groupBy(_.intRate).mapValues(_.count(loan => loan.listD.toLocalDate == LocalDate.now()))
 
-    val originatedNotional: Long =
+    val originatedNotional: BigDecimal =
       (loanListing.loans collect {
         case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
       }).sum.toLong
 
-    val originatedNotionalByGrade: Map[String, Long] =
+    val originatedNotionalByGrade: Map[String, BigDecimal] =
       loanListing.loans.groupBy(_.grade).mapValues(_.collect {
         case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
       }.sum.toLong)
 
-    val originatedNotionalByYield: Map[Double, Long] =
+    val originatedNotionalByYield: Map[Double, BigDecimal] =
       loanListing.loans.groupBy(_.intRate).mapValues(_.collect {
         case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
       }.sum.toLong)
