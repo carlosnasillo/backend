@@ -10,10 +10,7 @@ package com.lattice.lib.integration.lc.model
 import java.time.LocalDate
 
 import models.Grade
-import models.Grade
 import models.Grade.Grade
-import play.api.libs.json.Json.JsValueWrapper
-import play.api.libs.json._
 
 /**
 *  Created by Julien Déray on 20/10/2015.
