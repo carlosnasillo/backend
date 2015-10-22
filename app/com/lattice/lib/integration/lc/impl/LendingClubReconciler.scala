@@ -57,8 +57,8 @@ class LendingClubReconciler(
     val liquidityByGrade: Map[String, BigDecimal] = loanListing.loans.groupBy(_.grade).mapValues(_.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong)
 
     val loanOrigination: Int = loanListing.loans.count(loan => loan.listD.toLocalDate == LocalDate.now())
-    val loanOriginationByGrade: Map[String, Int] = loanListing.loans.groupBy(_.grade).mapValues(_.count(loan => loan.listD.toLocalDate == LocalDate.now()))
-    val loanOriginationByYield: Map[Double, Int] = loanListing.loans.groupBy(_.intRate).mapValues(_.count(loan => loan.listD.toLocalDate == LocalDate.now()))
+    val loanOriginationByGrade: Map[String, Int] = loanListing.loans.filter(loan => loan.listD.toLocalDate == LocalDate.now()).groupBy(_.grade).mapValues(_.size)
+    val loanOriginationByYield: Map[Double, Int] = loanListing.loans.filter(loan => loan.listD.toLocalDate == LocalDate.now()).groupBy(_.intRate).mapValues(_.size)
 
     val originatedNotional: BigDecimal =
       (loanListing.loans collect {
