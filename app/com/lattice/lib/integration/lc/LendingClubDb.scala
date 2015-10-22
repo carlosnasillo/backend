@@ -29,19 +29,19 @@ trait LendingClubDb extends Log {
   def persistLoans(availableLoans: LoanListing): Unit
 
   // load currently available loans from lattice database
-  def availableLoans: LoanListing
+  def availableLoans: Future[LoanListing]
 
   // upsert an order
   def persistOrder(orderPlaced: OrderPlaced)
 
   // load an order
-  def loadOrders: Seq[OrderPlaced]
+  def loadOrders: Future[Seq[OrderPlaced]]
 
   // persist a transfer or withdrawal transaction
   def persistTransaction(transaction: Transaction)
 
   // load all transactions 
-  def loadTransactions: Seq[Transaction]
+  def loadTransactions: Future[Seq[Transaction]]
   
   // persists loans analytics to lattice db
   def persistAnalytics(loanAnalytics: LoanAnalytics): Unit

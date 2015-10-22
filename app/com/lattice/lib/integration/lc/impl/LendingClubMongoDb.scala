@@ -44,16 +44,11 @@ class LendingClubMongoDb(db: DefaultDB) extends LendingClubDb {
     }
   }
 
-  override def availableLoans: LoanListing = {
+  override def availableLoans: Future[LoanListing] = {
     val loansTable = db.collection("loans")
     val query = Json.obj()
-    val availbleJsonFuture = loansTable.find(query).one[JsObject]
-    var loanListing: LoanListing = LoanListing(ZonedDateTime.now, null)
-    availbleJsonFuture.onComplete {
-      case Success(optListing) => loanListing = Json.fromJson[LoanListing](optListing.get).asOpt.get
-      case _                   => log.error("failed to load loan listing from db")
-    }
-    loanListing
+    val availableJsonFuture = loansTable.find(query).one[JsObject]
+    availableJsonFuture.map(json => Json.fromJson[LoanListing](json.get).asOpt.get )
   }
 
   override def persistOrder(orderPlaced: OrderPlaced) = {
@@ -73,10 +68,10 @@ class LendingClubMongoDb(db: DefaultDB) extends LendingClubDb {
     }
   }
 
-  override def loadOrders: Seq[OrderPlaced] = {
+  override def loadOrders: Future[Seq[OrderPlaced]] = {
     val collection = db.collection("orders")
     val futureList = collection.find(Json.obj()).cursor[OrderPlaced].toList(Int.MaxValue)
-    Await.ready(futureList, Duration.Inf).value.get.toOption.getOrElse(Seq.empty)
+    futureList
   }
 
   // TODO : there is probably a way to avoid created_on as _id is made from the date itself. See if we can request on it directly
@@ -88,10 +83,9 @@ class LendingClubMongoDb(db: DefaultDB) extends LendingClubDb {
     }
   }
 
-  override def loadTransactions: Seq[Transaction] = {
+  override def loadTransactions: Future[Seq[Transaction]] = {
     val collection = db.collection("transactions")
-    val futureList = collection.find(Json.obj()).cursor[Transaction].toList(Int.MaxValue)
-    Await.ready(futureList, Duration.Inf).value.get.toOption.getOrElse(Seq.empty)
+    collection.find(Json.obj()).cursor[Transaction].toList(Int.MaxValue)
   }
 
   override def persistTransaction(transaction:Transaction) = {

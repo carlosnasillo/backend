@@ -51,10 +51,10 @@ class LendingClubReconciler(
   }
 
   def calculateLoanAnalytics(loanListing: LoanListing) {
-    val numLoans: Long = loanListing.loans.size
-    val liquidity: Long = loanListing.loans.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong
-    val numLoansByGrade: Map[String, Long] = loanListing.loans.groupBy(_.grade).mapValues(_.size)
-    val liquidityByGrade: Map[String, Long] = loanListing.loans.groupBy(_.grade).mapValues(_.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong)
+    val numLoans: Int = loanListing.loans.size
+    val liquidity: BigDecimal = loanListing.loans.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong
+    val numLoansByGrade: Map[String, Int] = loanListing.loans.groupBy(_.grade).mapValues(_.size)
+    val liquidityByGrade: Map[String, BigDecimal] = loanListing.loans.groupBy(_.grade).mapValues(_.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong)
 
     val loanOrigination: Long = loanListing.loans.count(loan => loan.listD.toLocalDate == LocalDate.now())
     val loanOriginationByGrade: Map[String, Long] = loanListing.loans.groupBy(_.grade).mapValues(_.count(loan => loan.listD.toLocalDate == LocalDate.now()))
@@ -81,8 +81,8 @@ class LendingClubReconciler(
 
     yesterdayAnalytics.onComplete {
       case Success(analytics) =>
-        val dailyChangeInNumLoans: Double = numLoans - analytics.numLoans
-        val dailyChangeInLiquidity: Double = liquidity - analytics.liquidity
+        val dailyChangeInNumLoans: Int = numLoans - analytics.numLoans
+        val dailyChangeInLiquidity: BigDecimal = liquidity - analytics.liquidity
 
         val todaysAnalytics = LoanAnalytics(
           LocalDate.now(),
@@ -108,39 +108,43 @@ class LendingClubReconciler(
   /**
    * read available notes from lending club, for each note, check if its status has changed to trigger any cash flows
    */
-  private[impl] def reconcileOwnedNotes(ownedNotes: Seq[LendingClubNote], loans: Seq[LendingClubLoan], placedOrders: Seq[OrderPlaced]) {
+  private[impl] def reconcileOwnedNotes(ownedNotes: Seq[LendingClubNote], loans: Seq[LendingClubLoan], placedOrdersFuture: Future[Seq[OrderPlaced]]) {
     log.info("reconciling available notes")
 
-    log.info(s"placed orders:\n ${placedOrders mkString "\n"}")
+    placedOrdersFuture.onComplete {
+      case Success(placedOrders) =>
+        log.info(s"placed orders:\n ${placedOrders mkString "\n"}")
+        val orderId2Order = placedOrders map (x => (x.orderId -> x)) toMap
+        val ordersId2InvestorId = placedOrders map (x => (x.orderId -> x.investorId)) toMap
+        val ownedNotesByInvestor = ownedNotes.groupBy(x => ordersId2InvestorId(x.orderId))
+        // load the owned notes from LC
 
-    // load the owned notes from LC
+        log.info(s"owned notes:\n ${ownedNotes mkString "\n"}")
 
-    log.info(s"owned notes:\n ${ownedNotes mkString "\n"}")
+        val portfolios = ownedNotesByInvestor map { case (k, v) => (k, PortfolioAnalyzer.analyse(v)) }
 
-    val orderId2Order = placedOrders map (x => (x.orderId -> x)) toMap
-    val ordersId2InvestorId = placedOrders map (x => (x.orderId -> x.investorId)) toMap
-    val ownedNotesByInvestor = ownedNotes.groupBy(x => ordersId2InvestorId(x.orderId))
+        LendingClubFactory.portfolio.resetPortfolios(portfolios)
 
-    val portfolios = ownedNotesByInvestor map { case (k, v) => (k, PortfolioAnalyzer.analyse(v)) }
+        val notesToOrder = ownedNotes map (x => (x -> orderId2Order(x.orderId)))
 
-    LendingClubFactory.portfolio.resetPortfolios(portfolios)
+        notesToOrder foreach (x => analyseNote(x._1, x._2))
 
-    val notesToOrder = ownedNotes map (x => (x -> orderId2Order(x.orderId)))
+        val orderIdToNote = (ownedNotes map (x => x.orderId -> x)).toMap
 
-    notesToOrder foreach (x => analyseNote(x._1, x._2))
+        val unusedOrders = placedOrders filter (x => !orderIdToNote.contains(x.orderId))
+        val (pendingOrders, unissuedOrders) = analyseInactiveOrders(placedOrders, loans)
 
-    val orderIdToNote = (ownedNotes map (x => x.orderId -> x)).toMap
+        unissuedOrders foreach (x => {
+          db.persistOrder(x.copy(loanStatus = "Not Issued"))
+        })
 
-    val unusedOrders = placedOrders filter (x => !orderIdToNote.contains(x.orderId))
-    val (pendingOrders, unissuedOrders) = analyseInactiveOrders(placedOrders, loans)
-
-    unissuedOrders foreach (x => {
-      db.persistOrder(x.copy(loanStatus = "Not Issued"))
-    })
-
-    val transfers = db.loadTransactions
-
-    AccountBalanceManagerImpl.reconcileAccountBalance(transfers, ownedNotes, pendingOrders)
+        db.loadTransactions.onComplete {
+          case Success(transfers) =>
+            AccountBalanceManagerImpl.reconcileAccountBalance(transfers, ownedNotes, pendingOrders)
+          case _ => log.error("failed to load transfers from db")
+        }
+      case _ => log.error("failed to load orders placed from db")
+    }
   }
 
   /**

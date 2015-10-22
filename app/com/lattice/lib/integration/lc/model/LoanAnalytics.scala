@@ -17,12 +17,12 @@ import models.Grade.Grade
 */
 case class LoanAnalytics(
     created_on: LocalDate,
-    numLoans: Long,
-    liquidity: Long,
-    numLoansByGrade: Map[String, Long],
-    liquidityByGrade: Map[String, Long],
-    dailyChangeInNumLoans: Double,
-    dailyChangeInLiquidity: Double,
+    numLoans: Int,
+    liquidity: BigDecimal,
+    numLoansByGrade: Map[String, Int],
+    liquidityByGrade: Map[String, BigDecimal],
+    dailyChangeInNumLoans: Int,
+    dailyChangeInLiquidity: BigDecimal,
     loanOrigination: Long,
     loanOriginationByGrade: Map[String, Long],
     loanOriginationByYield: Map[Double, Long],
@@ -31,13 +31,16 @@ case class LoanAnalytics(
     originatedNotionalByYield: Map[Double, Long]
 ) {
 
-  private def enumifyMap(aMap: Map[String, Long]): Map[Grade, Long] =
-    aMap map {
-      case (grade, num) => (Grade.withName(grade), num)
-    }
-
-  val numLoansByGradeEnum: Map[Grade, Long] = enumifyMap(numLoansByGrade)
-  val liquidityByGradeEnum: Map[Grade, Long] = enumifyMap(numLoansByGrade)
-  val loanOriginationByGradeEnum: Map[Grade, Long] = enumifyMap(loanOriginationByGrade)
-  val originatedNotionalByGradeEnum: Map[Grade, Long] = enumifyMap(loanOriginationByGrade)
+  val numLoansByGradeEnum: Map[Grade, Int] = numLoansByGrade map {
+    case (grade, num) => (Grade.withName(grade), num)
+  }
+  val liquidityByGradeEnum: Map[Grade, BigDecimal] = liquidityByGrade map {
+    case (grade, num) => (Grade.withName(grade), num)
+  }
+  val loanOriginationByGradeEnum: Map[Grade, Long] = loanOriginationByGrade map {
+    case (grade, num) => (Grade.withName(grade), num)
+  }
+  val originatedNotionalByGradeEnum: Map[Grade, Long] = loanOriginationByGrade map {
+    case (grade, num) => (Grade.withName(grade), num)
+  }
 }

@@ -25,22 +25,22 @@ trait MarketplaceAnalytics extends Log {
   def originator:Originator.Value
   
   // the number of loans currently available in the marketplace
-  def numLoans: Future[Long]
+  def numLoans: Future[Int]
   
   // the total notional currently available for investment
-  def liquidity: Future[Long]
+  def liquidity: Future[BigDecimal]
   
   // number of loans currently available for investment in the market - breakdown by grade
-  def numLoansByGrade: Future[Map[Grade.Value,Long]]
+  def numLoansByGrade: Future[Map[Grade.Value,Int]]
   
   // the total notional currently available for investment in the market - breakdown by grade 
-  def liquidityByGrade: Future[Map[Grade.Value,Long]]
+  def liquidityByGrade: Future[Map[Grade.Value,BigDecimal]]
  
   // the change in percentage in the number of loans between days
-  def dailyChangeInNumLoans: Future[Double]
+  def dailyChangeInNumLoans: Future[Int]
   
   // the change in percentage in the available notional between days
-  def dailyChangeInLiquidity: Future[Double]
+  def dailyChangeInLiquidity: Future[BigDecimal]
   
   // the number of loans originated today
   def loanOrigination: Future[Long] = loanOrigination(LocalDate.now, LocalDate.now).map(_.head._2)
