@@ -30,7 +30,7 @@ class LendingClubReconciler(
   db: LendingClubDb) // access to lending club database
     extends Log {
 
-  def reconcileWithMarket {
+  def reconcileWithMarket() {
     val availableLoans = lc.availableLoans
     val ownedNotes = lc.ownedNotes
     val placedOrders = db.loadOrders
@@ -50,7 +50,6 @@ class LendingClubReconciler(
     calculateLoanAnalytics(availableLoans)
   }
   
-  //TODO Julien - use this to calculate the analytics and persist the result to db
   def calculateLoanAnalytics(loanListing: LoanListing) {
     val numLoans: Long = loanListing.loans.size
     val liquidity: Long = loanListing.loans.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong
