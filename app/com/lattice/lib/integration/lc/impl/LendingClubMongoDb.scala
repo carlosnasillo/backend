@@ -11,14 +11,12 @@ package com.lattice.lib.integration.lc.impl
 import java.time.{LocalDate, ZonedDateTime}
 
 import com.lattice.lib.integration.lc.LendingClubDb
-import com.lattice.lib.integration.lc.model.Formatters.{loanAnalyticsFormat, loanListingFormat, orderPlacedFormat}
-import com.lattice.lib.integration.lc.model.LoanAnalytics
+import com.lattice.lib.integration.lc.model.Formatters.{loanAnalyticsFormat, loanListingFormat, orderPlacedFormat, transactionFormat}
+import com.lattice.lib.integration.lc.model.{Transaction, LoanAnalytics, LoanListing, OrderPlaced}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.{Failure, Success}matters.transactionFormat
-
-import com.lattice.lib.integration.lc.model.{LoanListing, OrderPlaced}
+import scala.util.{Failure, Success}
 import play.api.libs.json.{JsObject, Json}
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.modules.reactivemongo.json.JsObjectDocumentWriter
@@ -88,5 +86,18 @@ class LendingClubMongoDb(db: DefaultDB) extends LendingClubDb {
     loansAnalytics.find(query).one[JsObject].map { optAnalytics =>
       Json.fromJson[LoanAnalytics](optAnalytics.get).asOpt.get
     }
+  }
+
+  override def loadTransactions: Seq[Transaction] = {
+    val collection = db.collection("transactions")
+    val futureList = collection.find(Json.obj()).cursor[Transaction].toList(Int.MaxValue)
+    Await.ready(futureList, Duration.Inf).value.get.toOption.getOrElse(Seq.empty)
+  }
+
+  override def persistTransaction(transaction:Transaction) = {
+    val orders = db.collection("transactions")
+    val transactionJs = Json.toJson(transaction).as[JsObject]
+    val future = orders.insert(transaction)
+    Await.ready(future, Duration.Inf)
   }
 }  

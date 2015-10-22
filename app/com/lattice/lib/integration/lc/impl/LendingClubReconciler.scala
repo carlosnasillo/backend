@@ -49,16 +49,16 @@ class LendingClubReconciler(
     db.persistLoans(availableLoans)
     calculateLoanAnalytics(availableLoans)
   }
-  
+
   def calculateLoanAnalytics(loanListing: LoanListing) {
     val numLoans: Long = loanListing.loans.size
     val liquidity: Long = loanListing.loans.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong
     val numLoansByGrade: Map[String, Long] = loanListing.loans.groupBy(_.grade).mapValues(_.size)
     val liquidityByGrade: Map[String, Long] = loanListing.loans.groupBy(_.grade).mapValues(_.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong)
 
-    val loanOrigination: Long = loanListing.loans.count( loan => loan.listD.toLocalDate == LocalDate.now())
-    val loanOriginationByGrade: Map[String, Long] = loanListing.loans.groupBy(_.grade).mapValues(_.count( loan => loan.listD.toLocalDate == LocalDate.now()))
-    val loanOriginationByYield: Map[Double, Long] = loanListing.loans.groupBy(_.intRate).mapValues(_.count( loan => loan.listD.toLocalDate == LocalDate.now()))
+    val loanOrigination: Long = loanListing.loans.count(loan => loan.listD.toLocalDate == LocalDate.now())
+    val loanOriginationByGrade: Map[String, Long] = loanListing.loans.groupBy(_.grade).mapValues(_.count(loan => loan.listD.toLocalDate == LocalDate.now()))
+    val loanOriginationByYield: Map[Double, Long] = loanListing.loans.groupBy(_.intRate).mapValues(_.count(loan => loan.listD.toLocalDate == LocalDate.now()))
 
     val originatedNotional: Long =
       (loanListing.loans collect {
@@ -81,26 +81,26 @@ class LendingClubReconciler(
 
     yesterdayAnalytics.onComplete {
       case Success(analytics) =>
-          val dailyChangeInNumLoans: Double = numLoans - analytics.numLoans
-          val dailyChangeInLiquidity: Double = liquidity - analytics.liquidity
+        val dailyChangeInNumLoans: Double = numLoans - analytics.numLoans
+        val dailyChangeInLiquidity: Double = liquidity - analytics.liquidity
 
-          val todaysAnalytics = LoanAnalytics(
-            LocalDate.now(),
-            numLoans,
-            liquidity,
-            numLoansByGrade,
-            liquidityByGrade,
-            dailyChangeInNumLoans,
-            dailyChangeInLiquidity,
-            loanOrigination,
-            loanOriginationByGrade,
-            loanOriginationByYield,
-            originatedNotional,
-            originatedNotionalByGrade,
-            originatedNotionalByYield
-          )
+        val todaysAnalytics = LoanAnalytics(
+          LocalDate.now(),
+          numLoans,
+          liquidity,
+          numLoansByGrade,
+          liquidityByGrade,
+          dailyChangeInNumLoans,
+          dailyChangeInLiquidity,
+          loanOrigination,
+          loanOriginationByGrade,
+          loanOriginationByYield,
+          originatedNotional,
+          originatedNotionalByGrade,
+          originatedNotionalByYield
+        )
 
-          lendingClubMongoDb.persistAnalytics(todaysAnalytics)
+        lendingClubMongoDb.persistAnalytics(todaysAnalytics)
       case _ => log.error("failed to load analytics listing from db")
     }
   }
@@ -144,7 +144,7 @@ class LendingClubReconciler(
   }
 
   /**
-   *  analyse changes in note lifecycle
+   * analyse changes in note lifecycle
    */
   private[lc] def analyseNote(note: LendingClubNote, order: OrderPlaced) {
     order.contractAddress match {
@@ -166,4 +166,4 @@ class LendingClubReconciler(
 
   //TODO create the contract on bc and return its address
   def createLoanContract: String = ""
-
+}
