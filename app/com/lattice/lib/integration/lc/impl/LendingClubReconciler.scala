@@ -12,6 +12,7 @@ import java.time.{ZonedDateTime, LocalDate}
 import com.lattice.lib.integration.lc.model.{LendingClubLoan, LendingClubNote, LoanListing, OrderPlaced, _}
 import com.lattice.lib.integration.lc.{LendingClubConnection, LendingClubDb, LendingClubFactory}
 import com.lattice.lib.utils.{DbUtil, Log}
+import com.lattice.lib.utils.Implicits.SeqImpl
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
@@ -52,7 +53,7 @@ class LendingClubReconciler(
 
   private[impl] def calculateLoanAnalytics(loanListing: LoanListing) {
     val numLoans: Int = loanListing.loans.size
-    val liquidity: BigDecimal = loanListing.loans.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong
+    val liquidity: BigDecimal = loanListing.loans.sumBy[BigDecimal]( x => x.loanAmount - x.fundedAmount )
     val numLoansByGrade: Map[String, Int] = loanListing.loans.groupBy(_.grade).mapValues(_.size)
     val liquidityByGrade: Map[String, BigDecimal] = loanListing.loans.groupBy(_.grade).mapValues(_.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong)
 
@@ -61,19 +62,21 @@ class LendingClubReconciler(
     val loanOriginationByYield: Map[Double, Int] = loanListing.loans.filter(loan => loan.listD.toLocalDate == LocalDate.now()).groupBy(_.intRate).mapValues(_.size)
 
     val originatedNotional: BigDecimal =
-      (loanListing.loans collect {
-        case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
-      }).sum.toLong
+      loanListing.loans
+      .filter(loans => loans.listD.toLocalDate == LocalDate.now())
+      .sumBy[BigDecimal]( x => x.loanAmount - x.fundedAmount )
 
     val originatedNotionalByGrade: Map[String, BigDecimal] =
-      loanListing.loans.groupBy(_.grade).mapValues(_.collect {
-        case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
-      }.sum.toLong)
+      loanListing.loans
+        .filter(loans => loans.listD.toLocalDate == LocalDate.now())
+        .groupBy(_.grade)
+        .mapValues( x => x.sumBy[BigDecimal]( x => x.loanAmount - x.fundedAmount) )
 
     val originatedNotionalByYield: Map[Double, BigDecimal] =
-      loanListing.loans.groupBy(_.intRate).mapValues(_.collect {
-        case x if x.listD.toLocalDate == LocalDate.now() => x.loanAmount
-      }.sum.toLong)
+      loanListing.loans
+        .filter(loans => loans.listD.toLocalDate == LocalDate.now())
+        .groupBy(_.intRate)
+        .mapValues( x => x.sumBy[BigDecimal]( x => x.loanAmount - x.fundedAmount) )
 
     val lendingClubMongoDb: LendingClubMongoDb = new LendingClubMongoDb(DbUtil.db)
 
