@@ -7,7 +7,7 @@
  */
 package com.lattice.lib.integration.lc.impl
 
-import java.time.LocalDate
+import java.time.{ZonedDateTime, LocalDate}
 
 import com.lattice.lib.integration.lc.model.{LendingClubLoan, LendingClubNote, LoanListing, OrderPlaced, _}
 import com.lattice.lib.integration.lc.{LendingClubConnection, LendingClubDb, LendingClubFactory}
@@ -85,7 +85,7 @@ class LendingClubReconciler(
         val dailyChangeInLiquidity: BigDecimal = liquidity - analytics.liquidity
 
         val todaysAnalytics = LoanAnalytics(
-          LocalDate.now(),
+          ZonedDateTime.now(),
           numLoans,
           liquidity,
           numLoansByGrade,

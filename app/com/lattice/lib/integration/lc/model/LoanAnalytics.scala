@@ -7,7 +7,7 @@
  */
 package com.lattice.lib.integration.lc.model
 
-import java.time.LocalDate
+import java.time.ZonedDateTime
 
 import models.Grade
 import models.Grade.Grade
@@ -16,7 +16,7 @@ import models.Grade.Grade
 *  Created by Julien Déray on 20/10/2015.
 */
 case class LoanAnalytics(
-    created_on: LocalDate,
+    created_on: ZonedDateTime,
     numLoans: Int,
     liquidity: BigDecimal,
     numLoansByGrade: Map[String, Int],

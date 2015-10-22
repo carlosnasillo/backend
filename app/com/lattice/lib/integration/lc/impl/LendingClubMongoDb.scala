@@ -13,6 +13,7 @@ import java.time.{LocalDate, ZonedDateTime}
 import com.lattice.lib.integration.lc.LendingClubDb
 import com.lattice.lib.integration.lc.model.Formatters.{loanAnalyticsFormat, loanListingFormat, orderPlacedFormat, transactionFormat}
 import com.lattice.lib.integration.lc.model.{Transaction, LoanAnalytics, LoanListing, OrderPlaced}
+import com.lattice.lib.utils.DbUtil
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -74,13 +75,10 @@ class LendingClubMongoDb(db: DefaultDB) extends LendingClubDb {
     futureList
   }
 
-  // TODO : there is probably a way to avoid created_on as _id is made from the date itself. See if we can request on it directly
   override def loadAnalyticsByDate(date: LocalDate): Future[LoanAnalytics] = {
     val loansAnalytics = db.collection("loanAnalytics")
     val query = Json.obj("created_on" -> Json.obj("$gte" -> date, "$lt" -> date.plusDays(1)))
-    loansAnalytics.find(query).one[JsObject].map { optAnalytics =>
-      Json.fromJson[LoanAnalytics](optAnalytics.get).asOpt.get
-    }
+    loansAnalytics.find(query).sort(Json.obj("created_on" -> -1)).cursor[LoanAnalytics].toList(Int.MaxValue).map(_.head)
   }
 
   override def loadTransactions: Future[Seq[Transaction]] = {
