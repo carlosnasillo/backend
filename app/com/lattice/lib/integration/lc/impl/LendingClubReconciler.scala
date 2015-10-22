@@ -50,7 +50,7 @@ class LendingClubReconciler(
     calculateLoanAnalytics(availableLoans)
   }
 
-  def calculateLoanAnalytics(loanListing: LoanListing) {
+  private[impl] def calculateLoanAnalytics(loanListing: LoanListing) {
     val numLoans: Int = loanListing.loans.size
     val liquidity: BigDecimal = loanListing.loans.map(lcl => lcl.loanAmount - lcl.fundedAmount).sum.toLong
     val numLoansByGrade: Map[String, Int] = loanListing.loans.groupBy(_.grade).mapValues(_.size)
