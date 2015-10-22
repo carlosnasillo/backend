@@ -26,24 +26,44 @@ object Formatters {
   implicit val accountSummaryFormat = Json.format[AccountSummary]
 
   /**
-   * Defines the formatter for Map[Double, Long]
+   * Defines the formatter for Map[Double, BigDecimal]
    */
-  private val mapDoubleLongReads: Reads[Map[Double, Long]] = new Reads[Map[Double, Long]] {
-    def reads(jv: JsValue): JsResult[Map[Double, Long]] =
-      JsSuccess(jv.as[Map[String, Long]].map{case (k, v) =>
-        k.toDouble -> v.toLong
+  private val mapDoubleBigDecimalReads: Reads[Map[Double, BigDecimal]] = new Reads[Map[Double, BigDecimal]] {
+    def reads(jv: JsValue): JsResult[Map[Double, BigDecimal]] =
+      JsSuccess(jv.as[Map[String, BigDecimal]].map{case (k, v) =>
+        k.toDouble -> v
       })
   }
 
-  private val mapDoubleLongWrites: Writes[Map[Double, Long]] = new Writes[Map[Double, Long]] {
-    def writes(map: Map[Double, Long]): JsValue =
+  private val mapDoubleBigDecimalWrites: Writes[Map[Double, BigDecimal]] = new Writes[Map[Double, BigDecimal]] {
+    def writes(map: Map[Double, BigDecimal]): JsValue =
       Json.obj(map.map{case (s, o) =>
         val ret: (String, JsValueWrapper) = s.toString -> o
         ret
       }.toSeq:_*)
   }
 
-  implicit val mapDoubleLongFormat: Format[Map[Double, Long]] = Format(mapDoubleLongReads, mapDoubleLongWrites)
+  implicit val mapDoubleBigDecimalFormat: Format[Map[Double, BigDecimal]] = Format(mapDoubleBigDecimalReads, mapDoubleBigDecimalWrites)
+
+  /**
+   * Defines the formatter for Map[Double, Int]
+   */
+  private val mapDoubleIntReads: Reads[Map[Double, Int]] = new Reads[Map[Double, Int]] {
+    def reads(jv: JsValue): JsResult[Map[Double, Int]] =
+      JsSuccess(jv.as[Map[String, Int]].map{case (k, v) =>
+        k.toDouble -> v
+      })
+  }
+
+  private val mapDoubleIntWrites: Writes[Map[Double, Int]] = new Writes[Map[Double, Int]] {
+    def writes(map: Map[Double, Int]): JsValue =
+      Json.obj(map.map{case (s, o) =>
+        val ret: (String, JsValueWrapper) = s.toString -> o
+        ret
+      }.toSeq:_*)
+  }
+
+  implicit val mapDoubleIntFormat: Format[Map[Double, Int]] = Format(mapDoubleIntReads, mapDoubleIntWrites)
 
   /**
    * Defines the formatter for LoanAnalytics
